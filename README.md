@@ -78,21 +78,21 @@ The `clone.py` script is used to clone the students' repositories.
 
 1. `./clone.py cs123-spring2016 --url-type http-save`
 
-   Clones all the repositories in the group cs123-spring2016 to the folder `./cs123-spring2016`.
-   You'll be asked to type in your private token and your Gitlab credentials once. The only git
-   command that will be run is `git clone`. You might run this near the start of term to clone
-   all the students' repos.
+ Clones all the repositories in the group cs123-spring2016 to the folder `./cs123-spring2016`.
+ You'll be asked to type in your private token and your Gitlab credentials once. The only git
+ command that will be run is `git clone`. You might run this near the start of term to clone
+ all the students' repos.
 
 1. `./clone.py cs123-spring2016 --token-file ~/.gitlab_token --url-type http-save`
 
-   Same as above, except that the private token will be read from the first line of ~/.gitlab_token, a
-   text file you have to created manually.
+ Same as above, except that the private token will be read from the first line of ~/.gitlab_token, a
+ text file you have to created manually.
 
 1. `./clone.py cs123-spring2016 --url-type ssh-save --revert-to-date '2016-05-30 13:00:00' --students jsmith,ekelly,t2yang`
 
-   Clones the repositories for three students jsmith, ekelly, and t2yang. If the directory to clone to already exists,
-   git will throw an error (this can happen if you cloned previously, in which case you can ignore the error).
-   The script will then pull master and revert to the last revision before 1:00pm on May 30, 2016.
+ Clones the repositories for three students jsmith, ekelly, and t2yang. If the directory to clone to already exists,
+ git will throw an error (this can happen if you cloned previously, in which case you can ignore the error).
+ The script will then pull master and revert to the last revision before 1:00pm on May 30, 2016.
 
 ### `batch-operation.py`
 
