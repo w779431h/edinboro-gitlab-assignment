@@ -56,13 +56,6 @@ def url2reponame(url):
 # clone_dir, revert_to_date
 #
 
-# Private token: Read from stdin quietly or read from file
-# git repo access: http, ssh, (enter password every single time), http-passwd-once, ssh-passwd-once
-# Group name 
-# --clone-to: Directory to clone your repo into. Default is: ./groupname/
-# --revert-to-date: Also run revert (optional)
-# --clone-all OR a list of 1 or more quest IDs
-
 parser = argparse.ArgumentParser(description="This script is used to clone student repositories.")
 parser.add_argument('group_name', help="The name of the Gitlab group whose projects you want to clone.")
 parser.add_argument('--url-type', choices=['http','ssh','http-save','ssh-save'], default='http',
@@ -70,7 +63,7 @@ parser.add_argument('--url-type', choices=['http','ssh','http-save','ssh-save'],
                          "you only have to type your password once. Default is http.")
 parser.add_argument('--token-file', default="/dev/stdin",
                     help="Path to file containing your Gitlab private token. Default is to read from standard input.")
-parser.add_argument('--clone-dir', help="Directory to clone repositories to. Default is; ./groupname/")
+parser.add_argument('--clone-dir', help="Directory to clone repositories to. Default is; ./group_name/")
 parser.add_argument('--revert-to-date', type=valid_datetime, help="Once cloned, revert repos to this date on master branch. Format: 'YYYY-MM-DD hh:mm:ss'")
 parser.add_argument('--students', help="A comma separated list of student Quest IDs.  If given, only these student's repos will be cloned. " +
                                        "Default is to clone every project in the group.")
@@ -204,6 +197,13 @@ for url in urls:
         os.chdir(username)
         print("> Reverting master branch to date %s in folder %s." % (revert_to_date, os.path.abspath(os.curdir)))
         try:
+            # First grab the student's latest work on master branch
+            retcode1 = subprocess.call('git checkout master'.split())
+            retcode2 = subprocess.call('git pull origin master'.split())
+            if retcode1 != 0 or retcode2 != 0:
+                print("> Cannot checkout and pull from master branch!")
+                raise
+            # Then checkout the last revision before due date
             revision_to_use = subprocess.check_output(['git', 'rev-list', '-n1', '--before="%s"'%revert_to_date, '--first-parent', 'master']).strip()
             if revision_to_use:
                 print("> Checking out revision %s" % revision_to_use)
@@ -212,7 +212,7 @@ for url in urls:
                 print("> Cannot find a revision before %s" % revert_to_date)
                 raise
         except Exception as e:
-            print("> Could not revert %s! A revision might not exist before %s." % (username, revert_to_date))
+            print("> Could not revert %s! A revision might not exist before %s in master branch." % (username, revert_to_date))
             students_without_revision.append(username)
         os.chdir(os.pardir)
 
