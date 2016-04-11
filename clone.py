@@ -175,7 +175,7 @@ os.chdir(clone_dir)
 
 # If the user wants to save authentication information, do that now
 if url_type == 'http-save':
-    cmd = ['git', 'config', '--global', 'credential.helper', "'cache --timeout=1800'"]
+    cmd = ['git', 'config', '--global', 'credential.helper', "cache --timeout=1800"]
     print("Using git credential helper to save your password.")
     print("Running %s" % ' '.join(cmd))
     subprocess.call(cmd)
