@@ -194,9 +194,11 @@ for url in urls:
     subprocess.call(['git', 'clone', url])
     if revert_to_date:
         username = url2reponame(url)
+        print("> Reverting master branch to date %s in folder %s." % (revert_to_date, os.path.abspath(os.curdir)))
+        if not os.path.isdir(username + "/.git"):
+            continue
+        os.chdir(username)
         try:
-            print("> Reverting master branch to date %s in folder %s." % (revert_to_date, os.path.abspath(os.curdir)))
-            os.chdir(username)
 
             # First grab the student's latest work on master branch
             retcode1 = subprocess.call('git checkout master'.split())
