@@ -38,7 +38,7 @@ The scripts are written in [Python](https://www.python.org/). To run them, pleas
 [CSCF Point of Contact](https://cs.uwaterloo.ca/cscf/teaching/contact/).
 
 You can save the output of the scripts (or any program really) using [tee](https://en.wikipedia.org/wiki/Tee_%28command%29).
-For example, you can run `./clone.py cs123-spring2016 | tee clone-ouput.txt`.
+For example, you can run `python3 clone.py cs123-spring2016 | tee clone-ouput.txt`.
 
 All scripts accept `-h` and `--help` arguments and will print a help message. You may have to make the scripts
 executable before running them (for example, which `chmod 700`). More documentation is below.
@@ -76,19 +76,19 @@ The `clone.py` script is used to clone the students' repositories.
   
 #### Examples:
 
-1. `./clone.py cs123-spring2016 --url-type http-save`
+1. `python3 clone.py cs123-spring2016 --url-type http-save`
 
     Clones all the repositories in the group cs123-spring2016 to the folder `./cs123-spring2016`.
     You'll be asked to type in your private token and your Gitlab credentials once. The only git
     command that will be run is `git clone`. You might run this near the start of term to clone
     all the students' repos.
 
-1. `./clone.py cs123-spring2016 --token-file ~/.gitlab_token --url-type http-save`
+1. `python3 clone.py cs123-spring2016 --token-file ~/.gitlab_token --url-type http-save`
 
     Same as above, except that the private token will be read from the first line of ~/.gitlab_token, a
     text file you have to created manually.
 
-1. `./clone.py cs123-spring2016 --url-type ssh-save --revert-to-date '2016-05-30 13:00:00' --students j4ansmith,yralimonl,t2yang`
+1. `python3 clone.py cs123-spring2016 --url-type ssh-save --revert-to-date '2016-05-30 13:00:00' --students j4ansmith,yralimonl,t2yang`
 
     Clones the repositories for three students j4ansmith, yralimonl, and t2yang. If the directory to clone to already exists,
     git will throw an error (this can happen if you cloned previously, in which case you can ignore the error).
@@ -112,7 +112,7 @@ Runs a command or program in every folder in a given folder.
 
         $ ls cs349-test1/
         cscf-t01  cscf-t02  cscf-t03  cscf-t04  cscf-t05  random-project
-        $ ./batch-operation.py cs349-test1/ pwd
+        $ python3 batch-operation.py cs349-test1/ pwd
         /u5/yc2lee/gitlab-assignments/cs349-test1/cscf-t01
         /u5/yc2lee/gitlab-assignments/cs349-test1/cscf-t02
         /u5/yc2lee/gitlab-assignments/cs349-test1/cscf-t03
@@ -123,7 +123,7 @@ Runs a command or program in every folder in a given folder.
 
 1. This example will pass the folder name to `echo Hello,` and print an informative header.
 
-        $ ./batch-operation.py --headers --pass-name cs349-test1 'echo Hello,'
+        $ python3 batch-operation.py --headers --pass-name cs349-test1 'echo Hello,'
         >>> Running command in /u5/yc2lee/gitlab-assignments/cs349-test1/cscf-t01/cscf-t01
         Hello, cscf-t01
         
@@ -147,7 +147,7 @@ Runs a command or program in every folder in a given folder.
    the repos with `batch-operation.py`. There are four fatal errors because those repositories are empty
    and have no commits to show.
 
-        $ ./batch-operation.py --headers cs349-test1/ 'git log -1 --oneline'
+        $ python3 batch-operation.py --headers cs349-test1/ 'git log -1 --oneline'
         >>> Running command in /u5/yc2lee/gitlab-assignments/cs349-test1/cscf-t01/cscf-t01
         adb4691 nick testing push
         
