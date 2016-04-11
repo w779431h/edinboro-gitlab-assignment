@@ -196,6 +196,8 @@ for url in urls:
         username = url2reponame(url)
         print("> Reverting master branch to date %s in folder %s." % (revert_to_date, os.path.abspath(os.curdir)))
         if not os.path.isdir(username + "/.git"):
+            print("> %s does not seem to have a git repository" % username)
+            students_without_revision.append(username)
             continue
         os.chdir(username)
         try:
