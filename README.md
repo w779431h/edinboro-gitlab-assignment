@@ -88,9 +88,9 @@ The `clone.py` script is used to clone the students' repositories.
     Same as above, except that the private token will be read from the first line of ~/.gitlab_token, a
     text file you have to created manually.
 
-1. `./clone.py cs123-spring2016 --url-type ssh-save --revert-to-date '2016-05-30 13:00:00' --students jsmith,ekelly,t2yang`
+1. `./clone.py cs123-spring2016 --url-type ssh-save --revert-to-date '2016-05-30 13:00:00' --students j4ansmith,yralimonl,t2yang`
 
-    Clones the repositories for three students jsmith, ekelly, and t2yang. If the directory to clone to already exists,
+    Clones the repositories for three students j4ansmith, yralimonl, and t2yang. If the directory to clone to already exists,
     git will throw an error (this can happen if you cloned previously, in which case you can ignore the error).
     The script will then pull master and revert to the last revision before 1:00pm on May 30, 2016.
 
