@@ -1,4 +1,4 @@
-#!/usr/bin/ssh-agent /usr/bin/python3.4
+#!/usr/bin/ssh-agent /usr/bin/python3
 
 import pprint # useful for debugging
 import argparse,datetime,getpass
