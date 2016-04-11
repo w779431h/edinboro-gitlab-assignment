@@ -178,7 +178,7 @@ if url_type == 'http-save':
     cmd = ['git', 'config', '--global', 'credential.helper', "'cache --timeout=1800'"]
     print("Using git credential helper to save your password.")
     print("Running %s" % ' '.join(cmd))
-    subprocess.call(cmd.split())
+    subprocess.call(cmd)
 elif url_type == 'ssh-save':
     print("Running ssh-agent and ssh-add to save SSH passphrase.")
     subprocess.call('ssh-agent')
