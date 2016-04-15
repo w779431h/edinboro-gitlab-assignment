@@ -234,7 +234,6 @@ for url_info in urls:
         for event in project_events:
             # Only care about project events that are pushes to master branch
             if event['action_name'] in ['pushed to', 'pushed new'] and event['data']['ref'] == 'refs/heads/master':
-                print("created_at = %s" % event['created_at'])
                 # Gitlab has time in a format not easily read by Python's datetime,
                 # so do a little formatting with regex.
                 created_at_py = re.sub('([\d]{2})\.[\d]{3}(.[\d]{2}):([\d]{2})', r"\1\2\3", event['created_at'])
