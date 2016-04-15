@@ -6,10 +6,10 @@ assignment submission and processing.
 ## How do courses use Gitlab?
 
 Students will have a Git repo that they can use for revision control while doing their
-assignment work. The typical setup is:
+assignment work. The setup is:
 
-* A group is created for a course in a specific term. For example,
-  the group might be called `cs123-spring2016`.
+* A Gitlab group is created for a course for a specific term. For example,
+  the group might be called "cs123-spring2016".
 * In that group, there is a project/repo for each student. Students
   will be added as developers so that they can clone and push their
   work. By default, the master branch is protected, but this setting
@@ -21,15 +21,24 @@ assignment work. The typical setup is:
 * Course staff will be added to the group as owners. This lets course staff
   clone the students' repo for marking and distributing starter code. For marking,
   be sure to mark the correct revision (ie do not mark revisions made after the
-  assignment deadline). Git's `rev-parse` and `rev-list` commands can help 
-  with checking out the correct revision.
+  assignment deadline).
 * A student's repo can be used for the entire term. Course staff can subdivide
   the repo by assignment. For example, the repo can have folders called `A1/`, 
   `A2/`, `A3/`, etc).
-* When students are added to their repo as developers at the start of term, they will get an
-  email informing them of that. 
+* Students will get an invitation email when they're added to their repo as
+  a developer at the start of term. Students who have never used git.uwaterloo.ca before
+  must click the link in the email.
 * If students enroll late in the course, you can create repos for them using `create-repos.py`.
-  Alternatively, you can create repos using the Gitlab web interface.
+  Alternatively, you can create repos manually using git.uwaterloo.ca web interface.
+
+## Caveats
+
+* You should not trust commit dates. They can be faked intentionally (ex. the student tries to 
+  pass off late work as being on time) or unintentionally (ex. the clock on the student's
+  computer is wrong). However, the times associated with push events can be trusted because those times
+  come from the Gitlab server when the student pushes. The scripts use push times, not commit times.
+* Students **must** push their work to the master branch before the assignment due date. If students commit
+  on time, but forgets to push until after the due date, their work is considered late.
 
 ## Script Documentation
 
@@ -37,15 +46,16 @@ The scripts are written in [Python](https://www.python.org/). To run them, pleas
 3.4 or higher** and **Git 1.8 or higher**. If you have any issues or questions about the scripts, please contact your course's
 [CSCF Point of Contact](https://cs.uwaterloo.ca/cscf/teaching/contact/).
 
-You can save the output of the scripts (or any program really) using [tee](https://en.wikipedia.org/wiki/Tee_%28command%29).
+You can save the output of the scripts (or any command line program really) using [tee](https://en.wikipedia.org/wiki/Tee_%28command%29).
 For example, you can run `python3 clone.py cs123-spring2016 | tee clone-ouput.txt`.
 
 All scripts accept `-h` and `--help` arguments and will print a help message. You may have to make the scripts
-executable before running them (for example, which `chmod 700`). More documentation is below.
+executable before running them (for example, with `chmod 700`). More documentation is below.
 
 ### `clone.py`
 
-The `clone.py` script is used to clone the students' repositories.
+The `clone.py` script is used to clone the students' repositories and to checkout the last
+commit in the last push to master branch before a certain time.
 
 #### Arguments:
 
@@ -67,10 +77,16 @@ The `clone.py` script is used to clone the students' repositories.
   the first line of a file by itself, then set `TOKEN_FILE` to a path to the file.
 * `--clone-dir CLONE_DIR`: Will clone the students' repositories into the folder `CLONE_DIR`. The default is `./group_name/`,
   ie a folder with the same name as `group_name` in the current directory.
-* `--revert-to-date REVERT_TO_DATE`: This option will pull from master branch and checkout the last revision before `REVERT_TO_DATE`.
-  If you already cloned the repos (ex. by running `clone.py` previously), you can still use this option to update your copy to whatever
-  the student has in the master branch before the due date. The format of `REVERT_TO_DATE` is `YYYY-MM-DD hh:mm:ss` (ex. `2016-05-20 15:30:00`).
-  If this option isn't given, the script will just clone.
+* `--revert-date REVERT_TO_DATE`: This option will checkout the last commit in the last push to the master branch
+  before `REVERT_TO_DATE`, which can be in various formats:
+
+   * 2016-05-30 15:10 (will use 00 seconds and current timezone on the computer running the script)
+   * 2016-05-30 15:10-0400
+   * 2016-05-30 15:10:30
+   * 2016-05-30 15:10:30-0400
+
+  If a timezone isn't given, the current timezone on the system will be used.
+  If the `--revert-date` option isn't given, the script will just clone.
 * `--students STUDENTS`: The default is to clone (and possibly revert) all the repositories in the given group. Use this option if you only want to 
   perform these actions on a select set of students. `STUDENTS` should be a comma separated list of student Quest IDs.
   
@@ -86,13 +102,12 @@ The `clone.py` script is used to clone the students' repositories.
 1. `python3 clone.py cs123-spring2016 --token-file ~/.gitlab_token --url-type http-save`
 
     Same as above, except that the private token will be read from the first line of ~/.gitlab_token, a
-    text file you have to created manually.
+    text file you have to create manually.
 
-1. `python3 clone.py cs123-spring2016 --url-type ssh-save --revert-to-date '2016-05-30 13:00:00' --students j4ansmith,yralimonl,t2yang`
+1. `python3 clone.py cs123-spring2016 --url-type ssh-save --revert-date '2016-05-30 13:00:00' --students j4ansmith,yralimonl,t2yang`
 
-    Clones the repositories for three students j4ansmith, yralimonl, and t2yang. If the directory to clone to already exists,
-    git will throw an error (this can happen if you cloned previously, in which case you can ignore the error).
-    The script will then pull master and revert to the last revision before 1:00pm on May 30, 2016.
+    Clones the repositories for three students j4ansmith, yralimonl, and t2yang. Then checkout the last commit in the last push made 
+    to the master branch before 1:00pm on May 30, 2016.
 
 ### `batch-operation.py`
 
