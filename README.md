@@ -81,7 +81,7 @@ commit in the last push to master branch before a certain time.
 * `--clone-dir CLONE_DIR`: Will clone the students' repositories into the folder `CLONE_DIR`. The default is `./group_name/`,
   ie a folder with the same name as `group_name` in the current directory.
 * `--revert-date REVERT_TO_DATE`: This option will checkout the last commit in the last push to the master branch
-  before `REVERT_TO_DATE`, which can be in various formats:
+  before `REVERT_TO_DATE`, which can be in one of these formats:
 
    * 2016-05-30 15:10 (will use 00 seconds and current timezone on the computer running the script)
    * 2016-05-30 15:10-0400
