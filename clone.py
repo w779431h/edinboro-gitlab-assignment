@@ -74,6 +74,7 @@ parser.add_argument('--revert-date', type=valid_datetime, help="Once cloned, rev
                     "Format: 'YYYY-MM-DD hh:mm[:ss][-TTTT]' where TTTT is timezone offset, ex -0400.")
 parser.add_argument('--students', help="A comma separated list of student Quest IDs.  If given, only these student's repos will be cloned. " +
                                        "Default is to clone every project in the group.")
+parser.add_argument('--username', help="Username on git.uwaterloo.ca (same as Quest ID).")
 args = parser.parse_args()
 
 # save command line argument inputs in variables
@@ -82,6 +83,7 @@ url_type = args.url_type
 token_file = args.token_file
 clone_dir = args.clone_dir if args.clone_dir else ("./"+group_to_clone+"/")
 revert_date = args.revert_date
+gitlab_username = args.username
 if args.students:
     students = list(map(lambda s:s.strip(), args.students.split(',')))
     students = list(filter(lambda s: s and not s.isspace(), students))
@@ -156,6 +158,10 @@ all_usernames = []
 urls = []
 for project in projects_data:
     http_url = project['http_url_to_repo'] 
+    if gitlab_username:
+        # User (TA or instructor) gave their Gitlab username
+        # add it to http url
+        http_url = re.sub('^https://git.uwaterloo.ca', "https://%s@git.uwaterloo.ca" % gitlab_username, http_url)
     ssh_url = project['ssh_url_to_repo']
     username = url2reponame(ssh_url)
     all_usernames.append(username)
@@ -253,6 +259,12 @@ for url_info in urls:
         else:
             print("> Could not find any pushes to master branch before %s." % revert_date)
             students_without_revision.append(username)
+
+# Erase saved http credentials
+if url_type == 'http-save':
+    print(os.linesep)
+    print("Done cloning. Erasing saved http credentials.")
+    subprocess.call(['git', 'config', '--global', '--unset-all', 'credential.helper'])
 
 if problematic_usernames:
     print(os.linesep)

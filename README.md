@@ -39,6 +39,8 @@ assignment work. The setup is:
   come from the Gitlab server when the student pushes. The scripts use push times, not commit times.
 * Students **must** push their work to the master branch before the assignment due date. If students commit
   on time, but forgets to push until after the due date, their work is considered late.
+* When students clone their repo with http url, they might get the error `fatal: repository 'https://git.uwaterloo.ca/...' not found`.
+  Fix this by using the url `https://<questID>@git.uwaterloo.ca/...` instead (add Quest ID to url).
 
 ## Script Documentation
 
@@ -65,11 +67,12 @@ commit in the last push to master branch before a certain time.
 * `--url-type {http,ssh,http-save,ssh-save}`: You can choose to use either `http` or `ssh` for the repository
   URL. The default is `http`. To setup `ssh`, see the Gitlab doc on [SSH keys](https://git.uwaterloo.ca/help/ssh/README).
   If you are cloning many repositories, typing in your credentials every time is exhausting. You can make `clone.py` remember
-  your credentials using the `-save` versions. For `http-save`, your credentials will be saved for 30 minutes in memory with
+  your credentials using the `-save` versions. For `http-save`, your credentials is saved for 15 minutes in memory with
   the command:
   
-  `git config --global credential.helper 'cache --timeout=1800'`
+  `git config --global credential.helper cache`
 
+  You can clear the cached credentials with: `git config --global --unset-all credential.helper`.
   For `ssh-save`, your passphrase is saved using `ssh-agent` and `ssh-add`.
 * `--token-file TOKEN_FILE`: Access to Gitlab is needed to get all the projects in the group. You can
   find your private token from Gitlab [Account page](https://git.uwaterloo.ca/profile/account). By default, you'll
@@ -89,6 +92,8 @@ commit in the last push to master branch before a certain time.
   If the `--revert-date` option isn't given, the script will just clone.
 * `--students STUDENTS`: The default is to clone (and possibly revert) all the repositories in the given group. Use this option if you only want to 
   perform these actions on a select set of students. `STUDENTS` should be a comma separated list of student Quest IDs.
+* `--username USERNAME`: On some systems, you need to include your Gitlab username in the url or you'll get a "repository not found" error.
+  If you get that error, pass in your Gitlab username (same as your Quest ID) with this option.
   
 #### Examples:
 
