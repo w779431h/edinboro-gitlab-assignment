@@ -186,3 +186,48 @@ Runs a command or program in every folder in a given folder.
         >>> Running command in /u5/yc2lee/gitlab-assignments/cs349-test1/random-project/random-project
         3fd99a6 another test
         $
+
+### `create-repos.py`
+
+The `create-repos.py` script sets up repositories for a set of students. It should be
+run once at the start of term. This script will, for each student:
+
+1. Create a project/repository if one doesn't exist yet.
+1. Commit a `.gitignore` to the master branch. The `.gitignore` file has one line, which is just a `#`.
+1. Unprotect the master branch. Gitlab makes master branches protected by default.
+1. If the `--add-students` option is given, add student as developers. This action will send an invitation
+   email to the student's @uwaterloo.ca email address.
+
+#### Arguments:
+
+* `group_name`: The only mandatory argument is the group name. The students' repositories will be
+  added to this group, which should be created manually from the Gitlab [Groups page](https://git.uwaterloo.ca/dashboard/groups)
+  before running this script.
+* `--token-file TOKEN_FILE`: Same usage as in `clone.py`.
+* `--add-students`: Pass this option if you want to add students. By default, students will not be added. If you set this option,
+                    the script will ask you for your `_gitlab_session` cookie which you can get by logging in to
+                    https://git.uwaterloo.ca and searching for `_gitlab_session` cookie. It should be on the site git.uwaterloo.ca.
+                    The `_gitlab_session` cookie is a hash (ex. `5bcgf155e6add457d75c20db6045r9e9`).
+* `--classlist CLASSLIST`: Path to your course's `.classlist` file on the linux.student.cs.uwaterloo.ca servers. The full
+                           path is `/u/csXXX/.classlist` where XXX is your course number. The `.classlist` file is updated
+                           automatically each midnight using enrollment data from the registrar.
+* `--students STUDENTS`: You can set up repositories of a specific list of students instead of the whole class.
+                         `STUDENTS` should be a comma separated list of student Quest IDs.
+
+#### Examples:
+
+1. `./create-repos.py cs123-spring2015 --token-file ~/.gitlab_token --add-students --students j4ansmith,yralimonl,t2yang`
+
+   Reads your private Gitlab token from the file `~/.gitlab_token`. Then sets up projects for j4ansmith, yralimonl, and t2yang
+   in the group `cs123-spring2015`. Also adds the three students to their project. Gitlab will send an invitation email
+   to their @uwaterloo.ca email address.
+
+1. `./create-repos.py cs123-spring2015 --add-students --classlist /u/cs123/.classlist`
+
+   Sets up projects for all students in `/u/cs123/.classlist` at the time the script is run. Also adds students to their
+   project.
+
+### `gitlab.py`
+
+The file `gitlab.py` has some helper functions that are used by
+other scripts. It doesn't do anything when run by itself.

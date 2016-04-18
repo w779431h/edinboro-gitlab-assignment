@@ -1,5 +1,6 @@
 #!/usr/bin/ssh-agent /usr/bin/python3
 
+import gitlab
 import pprint # useful for debugging
 import argparse,getpass,re,time
 from datetime import datetime
@@ -9,29 +10,6 @@ import json,urllib.request
 #
 # Helper functions
 #
-
-# gitlab_query makes a request to https://git.uwaterloo.ca/api/v3/
-# and returns the JSON data as a Python object
-# Input: query: Part of URL after the URL above
-# Returns: A python object
-def gitlab_query(query):
-    try:
-        req = urllib.request.Request(url="https://git.uwaterloo.ca/api/v3/" + query,\
-                                     headers={'PRIVATE-TOKEN': private_token})
-        with urllib.request.urlopen(req) as f:
-            json_string = f.read().decode('utf-8')
-            try:
-                python_object = json.loads(json_string)
-            except Exception as e:
-                print(json_string)
-                print("Error occurred trying to interpret above data as JSON.")
-                print("Error message: %s" % str(e))
-                sys.exit(1)
-            return python_object
-    except Exception as e:
-        print("Error occurred trying to access https://git.uwaterloo.ca/api/v3/" + query)
-        print("Error message: %s" % str(e))
-        sys.exit(1)
 
 # Checks if s contains a valid date and time format. If it is
 # valid, return it as a datetime object. Otherwise, raises an
@@ -91,18 +69,7 @@ else:
     students = None
 
 # Read private token from keyboard or from file
-if token_file == "/dev/stdin":
-    print("You can get your Gitlab private token from https://git.uwaterloo.ca/profile/account")
-    private_token = getpass.getpass("Please enter your Gitlab private token:")
-else:
-    try:
-        token_file_handle = open(token_file, 'r')
-        private_token = token_file_handle.readline().strip()
-        token_file_handle.close
-    except Exception as e:
-        print("Error occurred trying to read private token from file %s" % token_file)
-        print("Error message: %s" % str(e))
-        sys.exit(1)
+gitlab.set_private_token(token_file)
 
 # for debugging
 # print("group_to_clone=%s" % group_to_clone)
@@ -119,25 +86,7 @@ else:
 #
 
 print("Getting ID of group %s." % group_to_clone)
-
-group_id = None
-groups_data = gitlab_query("groups")
-for group in groups_data:
-    if group['name'] == group_to_clone:
-        group_id = group['id']
-        break
-if group_id == None:
-    print("Could not find group %s." % group_to_clone)
-    print("The groups that are available are:")
-    name_width = 20
-    print(os.linesep)
-    print("\t%s   Description" % ("Name".ljust(name_width)))
-    print("\t%s   ---------------" % ("-" * name_width))
-    for group in groups_data:
-        print("\t%s   %s" % (group['name'].ljust(name_width), group['description']))
-    print(os.linesep)
-    sys.exit(1)
-
+group_id = gitlab.get_group_id(group_to_clone)
 print("Found group %s which has ID %d" % (group_to_clone, group_id))
 
 
@@ -152,7 +101,7 @@ print("Found group %s which has ID %d" % (group_to_clone, group_id))
 
 print("Getting git repo URLs in group %s (id %d)." % (group_to_clone, group_id))
 
-group_to_clone_data = gitlab_query("groups/%d" % group_id)
+group_to_clone_data = gitlab.request("groups/%d" % group_id)
 projects_data = group_to_clone_data['projects']
 all_usernames = []
 urls = []
@@ -230,7 +179,7 @@ for url_info in urls:
         # Find the latest push that's on or before revert_date
         ontime_push_time = None
         ontime_commit    = None
-        project_events = gitlab_query('projects/%s/events' % url_info['project_id'])
+        project_events = gitlab.request('projects/%s/events' % url_info['project_id'])
         for event in project_events:
             # Only care about project events that are pushes to master branch
             if event['action_name'] in ['pushed to', 'pushed new'] and event['data']['ref'] == 'refs/heads/master':
