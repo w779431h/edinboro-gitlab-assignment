@@ -41,6 +41,9 @@ assignment work. The setup is:
   on time, but forgets to push until after the due date, their work is considered late.
 * When students clone their repo with http url, they might get the error `fatal: repository 'https://git.uwaterloo.ca/...' not found`.
   Fix this by using the url `https://<questID>@git.uwaterloo.ca/...` instead (add Quest ID to url).
+* Students should have their @uwaterloo.ca email set up correctly at the start of term. Gitlab sends
+  invitation emails from hub.uwaterloo.ca. Student should not block this domain or filter out or block
+  Gitlab emails.
 
 ## Script Documentation
 
