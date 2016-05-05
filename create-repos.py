@@ -32,7 +32,6 @@ if add_students:
     print("This script adds students by interfacing with the git.uwaterloo.ca website directly.")
     print("Please login to https://git.uwaterloo.ca and enter your _gitlab_session cookie from git.uwaterloo.ca below.")
     gitlab_session_cookie = getpass.getpass("git.uwaterloo.ca _gitlab_session cookie value:")
-    print(gitlab_session_cookie)
 
 # Students we will create repositories for
 students = []
@@ -85,8 +84,12 @@ for student in students:
             master_branch_exists = True
     if not master_branch_exists:
         print("> master branch doesn't exist for %s. Creating it." % student)
-        gitlab.request('projects/%d/repository/files' % project_ids[student],
-                       post_hash={'file_path':".gitignore", 'branch_name':"master", 'content':"#\n", 'commit_message':"Initial commit to create master branch"})
+        for assn in ['A0', 'A1', 'A2', 'A3', 'A4']:
+            print("> Doing work for assignment %s" % assn)
+            gitlab.request('projects/%d/repository/files' % project_ids[student],
+                           post_hash={'file_path':("%s/.gitignore" % assn), 'branch_name':"master", 'content':"*.class\n", 'commit_message':("Creating %s folder" % assn)})
+            time.sleep(5)
+
         # Wait for master branch to become protected. Gitlab seems to have a delay on protecting the
         # master branch when it's created.
         while True:
@@ -119,7 +122,7 @@ for student in students:
         with urllib.request.urlopen(req) as f:
             project_members_html = f.read().decode('utf-8')
             for line in project_members_html.splitlines():
-                match = re.search(r'<input name="authenticity_token" type="hidden" value="([^"]+)" />', line)
+                match = re.search(r'<input type="hidden" name="authenticity_token" value="([^"]+)" />', line)
                 if match:
                     authenticity_token = match.group(1)
                     break
@@ -135,7 +138,7 @@ for student in students:
                                                       data=post_data, method='POST')
             urllib.request.urlopen(add_student_post)
         else:
-            print("> Could not get add student %s to repo!" % student)
+            print("> Could not add student %s to repo!" % student)
 
     print("> Done processing %s." % student)
-    time.sleep(3) # Put in a bit of a delay so that git.uwaterloo.ca isn't hammered
+    time.sleep(10) # Put in a bit of a delay so that git.uwaterloo.ca isn't hammered
