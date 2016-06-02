@@ -101,7 +101,7 @@ print("Found group %s which has ID %d" % (group_to_clone, group_id))
 
 print("Getting git repo URLs in group %s (id %d)." % (group_to_clone, group_id))
 
-group_to_clone_data = gitlab.request("groups/%d" % group_id)
+group_to_clone_data = gitlab.request("groups/%d?per_page=10000" % group_id)
 projects_data = group_to_clone_data['projects']
 all_usernames = []
 urls = []
@@ -179,7 +179,7 @@ for url_info in urls:
         # Find the latest push that's on or before revert_date
         ontime_push_time = None
         ontime_commit    = None
-        project_events = gitlab.request('projects/%s/events' % url_info['project_id'])
+        project_events = gitlab.request('projects/%s/events?per_page=10000000' % url_info['project_id'])
         for event in project_events:
             # Only care about project events that are pushes to master branch
             if event['action_name'] in ['pushed to', 'pushed new'] and event['data']['ref'] == 'refs/heads/master':
