@@ -202,7 +202,7 @@ for url_info in urls:
                     students_without_revision.append(username)
                 os.chdir(os.pardir)
             else:
-                print("> Directory %s doesn't exist. Cannot run git checkout.")
+                print("> Directory %s doesn't exist. Cannot run git checkout." % username)
                 students_without_revision.append(username)
         else:
             print("> Could not find any pushes to master branch before %s." % revert_date)
