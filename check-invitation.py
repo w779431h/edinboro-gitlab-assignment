@@ -123,7 +123,7 @@ for project in projects_data:
                      'http_url': http_url,
                      'ssh_url': ssh_url})
     members = gitlab.request("projects/%s/members" % project['id'])
-    if len(members) >= 1:
+    if len(members) >= 1 and members[0] != None:
         print("%s,%s,%s,%s" % (username,ssh_url,http_url,"accepted"))
     else:
         print("%s,%s,%s,%s" % (username,ssh_url,http_url,"DID NOT ACCEPT INVITE YET"))
