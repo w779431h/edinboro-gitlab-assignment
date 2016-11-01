@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import os
 import sys,getpass
 import json,urllib.request
 
@@ -70,7 +71,7 @@ def get_group_id(group_name):
         if group['name'] == group_name:
             return group['id']
     # could not find a group with the given name
-    print("Could not find group %s." % group_to_clone)
+    print("Could not find group %s." % group_name)
     print("The groups that are available are:")
     name_width = 20
     print(os.linesep)
