@@ -12,37 +12,41 @@ private_token = ''
 #        post_hash: A dictionary of data to send in a POST request
 #        query_headers: Any headers you want to send as part of the request
 #        quit_on_error: If True, will quit program on error. If False, will
-#                       return False on error instead
+#                       try 2 more times, and finially return false
 # Returns: A python object
-def request(query, post_hash={}, query_headers={}, http_method=None, quit_on_error=True):
-    try:
-        if 'PRIVATE-TOKEN' not in query_headers:
-            query_headers['PRIVATE-TOKEN'] = private_token
-        post_data = urllib.parse.urlencode(post_hash).encode('ascii') if post_hash else None
-        req = urllib.request.Request(url="https://git.uwaterloo.ca/api/v3/" + query,
-                                     data=post_data,
-                                     headers=query_headers,
-                                     method=http_method)
-        with urllib.request.urlopen(req) as f:
-            json_string = f.read().decode('utf-8')
-            try:
-                python_object = json.loads(json_string)
-            except Exception as e:
-                print(json_string)
-                print("Error occurred trying to interpret above data as JSON.")
-                print("Error message: %s" % str(e))
-                if quit_on_error:
-                    sys.exit(1)
-                else:
-                    return False
-            return python_object
-    except Exception as e:
-        print("Error occurred trying to access https://git.uwaterloo.ca/api/v3/" + query)
-        print("Error %s message: %s" % (type(e).__name__, str(e)))
-        if quit_on_error:
-            sys.exit(1)
-        else:
-            return False
+def request(query, post_hash={}, query_headers={}, http_method=None, quit_on_error=False, max_attempts=3):
+    max_tries = 3
+    for request_attempt in list(range(1,max_tries+1)):
+        try:
+            if 'PRIVATE-TOKEN' not in query_headers:
+                query_headers['PRIVATE-TOKEN'] = private_token
+            post_data = urllib.parse.urlencode(post_hash).encode('ascii') if post_hash else None
+            req = urllib.request.Request(url="https://git.uwaterloo.ca/api/v3/" + query,
+                                         data=post_data,
+                                         headers=query_headers,
+                                         method=http_method)
+            with urllib.request.urlopen(req) as f:
+                json_string = f.read().decode('utf-8')
+                try:
+                    python_object = json.loads(json_string)
+                except Exception as e:
+                    print(json_string)
+                    print("Error occurred trying to interpret above data as JSON.")
+                    print("Error message: %s" % str(e))
+                    if quit_on_error:
+                        sys.exit(1)
+                    else:
+                        return False
+                return python_object
+        except Exception as e:
+            print("Error occurred trying to access https://git.uwaterloo.ca/api/v3/" + query)
+            print("Error %s message: %s" % (type(e).__name__, str(e)))
+            if quit_on_error:
+                sys.exit(1)
+            elif request_attempt < max_tries:
+                print("Retrying... (re-try number %d)" % request_attempt)
+    print("Request failed after %d attempts" % max_tries)
+    return False
 
 # Read private token from token_file. Mutates the global private_token
 # above and returns it too.

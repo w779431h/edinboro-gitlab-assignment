@@ -5,6 +5,7 @@ import argparse,getpass,re
 import sys,subprocess,os
 import json,urllib.request
 import gitlab
+import ldap
 
 # Parse command-line arguments.
 parser = argparse.ArgumentParser(description="This script is used to create student repositories.")
@@ -84,11 +85,11 @@ for student in students:
             master_branch_exists = True
     if not master_branch_exists:
         print("> master branch doesn't exist for %s. Creating it." % student)
+        time.sleep(3)
         for assn in ['A0', 'A1', 'A2', 'A3', 'A4']:
             print("> Doing work for assignment %s" % assn)
             gitlab.request('projects/%d/repository/files' % project_ids[student],
                            post_hash={'file_path':("%s/.gitignore" % assn), 'branch_name':"master", 'content':"*.class\n", 'commit_message':("Creating %s folder" % assn)})
-            time.sleep(5)
 
         # Wait for master branch to become protected. Gitlab seems to have a delay on protecting the
         # master branch when it's created.
@@ -129,7 +130,8 @@ for student in students:
 
         # Step 2: Make the post request to invite by email
         if authenticity_token:
-            student_email = "%s@uwaterloo.ca" % student
+            #student_email = "%s@uwaterloo.ca" % student
+            student_email = ldap.get_student_email(student)
             print("> Got authenticity token.")
             print("> Sending invitation email to %s" % student_email)
             post_data = urllib.parse.urlencode({'authenticity_token':authenticity_token,'user_ids':student_email,'access_level':30}).encode('ascii')
@@ -141,4 +143,4 @@ for student in students:
             print("> Could not add student %s to repo!" % student)
 
     print("> Done processing %s." % student)
-    time.sleep(10) # Put in a bit of a delay so that git.uwaterloo.ca isn't hammered
+    time.sleep(5) # Put in a bit of a delay so that git.uwaterloo.ca isn't hammered
