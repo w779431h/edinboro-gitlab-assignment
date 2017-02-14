@@ -8,7 +8,7 @@ def get_student_email(userid):
     conn = Connection('uwldap.uwaterloo.ca', auto_bind=True)
     conn.search('dc=uwaterloo,dc=ca', '(uid=%s)' % userid, attributes=['mail', 'mailLocalAddress', 'cn'])
     if conn.entries:
-        return conn.entries[0].mail
+        return str(conn.entries[0].mail)
     else:
         return "%s@uwaterloo.ca" % userid
 
