@@ -236,7 +236,7 @@ run once at the start of term. This script will, for each student:
 The `stqam-create-repos.py` is used for CS447/SE465/ECE453 "Software Testing, Quality Assurance and Maintenance" course. This script
 creates projects for each student group according to an input CSV file, and adds the students to the group as developers.
 
-When running the script, you will be prompted for you `_gitlab_session` cookie. The script uses the cookie to interface with the Gitlab
+When running the script, you will be prompted for your `_gitlab_session` cookie. The script uses the cookie to interface with the Gitlab
 web page directly when there's no appropriate API calls available. Most browsers can show you the cookie value in the privacy settings.
 The script will not print what you type for security.
 
