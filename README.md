@@ -283,6 +283,25 @@ The script will not print what you type for security.
    * Students are in only one group on Gitlab and in the CSV file.
    * Each group in the CSV file has 1 to 3 members.
    * If a student's group in the CSV file is different from their group on Gitlab, the script will tell you.
+
+#### Examples:
+
+1. `./stqam-create-repos.py --current-membership --token-file ~/.gitlab_token_cs447 stqam-2017 cs447_groups1.csv`
+
+   Prints out which students are in what group. The output is sorted by project name and then by student ID.
+   Quits after printing the information (no projects are created).
+
+1. `./stqam-create-repos.py --check-membership --token-file ~/.gitlab_token_cs447 stqam-2017 cs447_groups1.csv`
+
+   Performs some checks on the groups on Gitlab and the CSV file. Reports any problems it finds. No new projects
+   will be created.
+
+1. `./stqam-create-repos.py --token-file ~/.gitlab_token_cs447 stqam-2017 cs447_groups1.csv`
+
+   Reads your private Gitlab token from the file `~/.gitlab_token_cs447`. Then creates a project for each group in
+   `cs447_groups1.csv` that doesn't have a number at the end. You can run the script with `--check-membership` argument
+   before and after creating projects as a sanity check.
+
    
 ### `gitlab.py` and `ldap.py`
 
