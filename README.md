@@ -231,7 +231,60 @@ run once at the start of term. This script will, for each student:
     Sets up projects for all students in `/u/cs123/.classlist` at the time the script is run. Also adds students to their
     project.
 
-### `gitlab.py`
+### `stqam-create-repos.py`
 
-The file `gitlab.py` has some helper functions that are used by
-other scripts. It doesn't do anything when run by itself.
+The `stqam-create-repos.py` is used for CS447/SE465/ECE453 "Software Testing, Quality Assurance and Maintenance" course. This script
+creates projects for each student group according to an input CSV file, and adds the students to the group as developers.
+
+When running the script, you will be prompted for you `_gitlab_session` cookie. The script uses the cookie to interface with the Gitlab
+web page directly when there's no appropriate API calls available. Most browsers can show you the cookie value in the privacy settings.
+The script will not print what you type for security.
+
+        $ ./stqam-create-repos.py --help
+        usage: stqam-create-repos.py [-h] [--token-file TOKEN_FILE]
+                                     [--current-membership] [--check-membership]
+                                     group_name membership_file
+        
+        This script is used to create student repositories for cs447/ece453/se465.
+        
+        positional arguments:
+          group_name            The name of the Gitlab group to create projects in.
+          membership_file       Path to a CSV containing group memberships, with
+                                fields: Timestamp, WatIAM user id for member 1, WatIAM
+                                user id for member 2 (optional), WatIAM user id for
+                                member 3 (optional), Group number (optional)
+        
+        optional arguments:
+          -h, --help            show this help message and exit
+          --token-file TOKEN_FILE
+                                Path to file containing your Gitlab private token.
+                                Default is to read from standard input.
+          --current-membership  Prints the current group memberships according to
+                                git.uwaterloo.ca and quit.
+          --check-membership    Checks the membership_file against the current group
+                                memberships. Prints any problems it finds and quit.
+
+#### Arguments:
+
+* `group_name`: This mandatory argument is the group name for the course offering in Gitlab. For example, 'stqam-2017'. Someone should
+   manually create the group from the Gitlab [Groups page](https://git.uwaterloo.ca/dashboard/groups) at the start of the term.
+* `membership_file`: This mandatory argument is the path to a CSV file containing information about student groups. The first line of the CSV file
+   is a header line and is ignored. Subsequent lines should contain these fields in order:
+   * Timestamp. Example: 2/10/2017 14:27:21
+   * Userid 1. Example: j29smith
+   * Userid 2. Can leave blank.
+   * Userid 3. Can leave blank.
+   * The last field is a number or blank. If there's a number, the script will not create the project. If it's blank, the project will be created.
+     The number can be arbitrary.
+* `--token-file TOKEN_FILE`: Same usage as in `clone.py`.
+* `--current-membership`: Prints the current group memberships according to git.uwaterloo.ca and quit. The memberships are printed by project
+   and by student ID.
+* `--check-membership`: Checks the CSV file and the groups that are already on git.uwaterloo.ca. Checks that:
+   * Students are in only one group on Gitlab and in the CSV file.
+   * Each group in the CSV file has 1 to 3 members.
+   * If a student's group in the CSV file is different from their group on Gitlab, the script will tell you.
+   
+### `gitlab.py` and `ldap.py`
+
+These files have some helper functions that are used by
+other scripts. They don't do anything when run by themselves.
