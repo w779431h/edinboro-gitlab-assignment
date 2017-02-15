@@ -7,6 +7,40 @@ import json,urllib.request,csv
 import gitlab
 import ldap
 
+# Converts a Python 2 cmp function to a key function for sorting
+def cmp_to_key(mycmp):
+    'Convert a cmp= function into a key= function'
+    class K:
+        def __init__(self, obj, *args):
+            self.obj = obj
+        def __lt__(self, other):
+            return mycmp(self.obj, other.obj) < 0
+        def __gt__(self, other):
+            return mycmp(self.obj, other.obj) > 0
+        def __eq__(self, other):
+            return mycmp(self.obj, other.obj) == 0
+        def __le__(self, other):
+            return mycmp(self.obj, other.obj) <= 0
+        def __ge__(self, other):
+            return mycmp(self.obj, other.obj) >= 0
+        def __ne__(self, other):
+            return mycmp(self.obj, other.obj) != 0
+    return K
+
+# Searches a list of tuples for the key. Returns either the index of the
+# first occurrence, or the value (second thing in tuple).
+# return_what can be 'index' or 'value'
+# Returns not_found_val if item is not found.
+def tuple_search(haystack, needle, return_what = 'index', not_found_val=False):
+    index = 0
+    for tup in haystack:
+        key = tup[0]
+        val = tup[1]
+        if key == needle:
+            return (index if return_what == 'index' else val)
+        index += 1
+    return not_found_val
+
 # Returns a list of the items that occur multiple times in set_of_sets
 def find_duplicates(set_of_sets):
     seen = set()
@@ -52,6 +86,9 @@ check_membership = args.check_membership
 #
 all_file_memberships = set()
 groups_to_create = set()
+# Stores triples, where the first elements are the same sets as all_file_memberships, but in same order as CSV. Second
+# elements are the group members, but as a list
+ordered_csv_groups = []
 try:
     with open(membership_file) as csvfile:
         reader = csv.reader(csvfile)
@@ -60,12 +97,19 @@ try:
         for row in reader:
             if str.isdigit(row[-1]):
                 # This row ends with a group number. Don't need to recreate it.
-                all_file_memberships.add(frozenset(filter(None, map(str.strip, row[1:-1]))))
+                to_add_list = list(filter(None, map(str.strip, row[1:-1])))
+                to_add_set = frozenset(to_add_list)
+
+                all_file_memberships.add(to_add_set)
+                ordered_csv_groups.append((to_add_set,to_add_list, row))
             else:
                 # Need to create new project
-                to_add = frozenset(filter(None, map(str.strip, row[1:])))
-                all_file_memberships.add(to_add)
-                groups_to_create.add(to_add)
+                to_add_list = list(filter(None, map(str.strip, row[1:])))
+                to_add_set = frozenset(to_add_list)
+
+                all_file_memberships.add(to_add_set)
+                ordered_csv_groups.append((to_add_set,to_add_list, row))
+                groups_to_create.add(to_add_set)
 except Exception as e:
     sys.stderr.write("Error occured while processing membership file %s:\n" % membership_file)
     sys.stderr.write(str(e) + "\n")
@@ -108,11 +152,13 @@ print()
 # data matches what already exists in git.uwaterloo.ca.
 #
 if print_current_membership or check_membership:
-    # Hash that maps project names (Str) to a list of WatIAM ids.
+    # Hash that maps project names (Str) to their internal gitlab id
+    project_ids = {}
+    # Hash that maps project names (Str) to a set of WatIAM ids.
     existing_memberships = {}
     print("Getting existing membership information from git.uwaterloo.ca...", flush=True)
     for project in projects_raw_data:
-        if print_current_membership: print("  %s: "%project['name'], end='', flush=True)
+        project_ids[project['name']] = project['id']
         # Get members from API call. This doesn't return students who have been invited, but
         # haven't accepted their invitation yet.
         members_raw_data = gitlab.request("/projects/%d/members" % project['id'])
@@ -123,27 +169,60 @@ if print_current_membership or check_membership:
         with urllib.request.urlopen(req) as f:
             project_members_html = f.read().decode('utf-8')
             email_members = re.findall(r"([a-zA-Z0-9_.+-]+)@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+", project_members_html)
-
-        members_list = sorted(list(set(members_list + email_members)))
-        if print_current_membership: print(', '.join(members_list), flush=True)
-        existing_memberships[project['name']] = members_list
+        # Combine the members from API call and from web page into a frozenset and save it in hash
+        existing_memberships[project['name']] = frozenset(members_list + email_members)
 
     # Also create a hash mapping student WatIAM ids to the groups they're in on gitlab [ String => listof(String) ]
     existing_memberships_by_userid = {}
-    for repo_name, student_list in existing_memberships.items():
-        for student in student_list:
+    for repo_name, members_set in existing_memberships.items():
+        for student in members_set:
             if student in existing_memberships_by_userid:
                 existing_memberships_by_userid[student].append(repo_name)
             else:
                 existing_memberships_by_userid[student] = [repo_name]
 
-    # We've printed the current group memberships by group.
-    # Print it by userid, then quit.
+    # This function prints the groups in the CSV file where at least one student isn't on git.uwaterloo.ca
+    def print_groups_not_on_gitlab():
+        print("\nThese groups from %s have at least one student who isn't in a group on git.uwaterloo.ca yet:\n---" % membership_file)
+        for members_set, members_list, row in ordered_csv_groups:
+            if list(filter(lambda s: s not in existing_memberships_by_userid, members_list)):
+                print("  " + ','.join(row))
+        print("---")
+
+    # If the user wants to print current membership info, print it and quit.
     if print_current_membership:
+        # Print by project
+        ordered_existing_memberships = []
+        for project_name, members_set in existing_memberships.items():
+            ordered_existing_memberships.append((project_name, members_set))
+        l = len(ordered_existing_memberships) # For some reason, putting this len call in the lambda doesn't work
+        ordered_existing_memberships.sort(key = lambda tup: tuple_search(ordered_csv_groups, tup[1], not_found_val=l))
+        print("\nMemberships by project (order roughly same as CSV %s):" % membership_file)
+        for project_name, members_set in ordered_existing_memberships:
+            csv_group_list = tuple_search(ordered_csv_groups, members_set, return_what='value')
+            print("   %s: %s" % (project_name, ','.join(csv_group_list if csv_group_list else members_set)))
+        print()
+
+        # Print by WatIAM ID:
         print("\nMemberships by WatIAM ID:")
         for userid in sorted(existing_memberships_by_userid.keys()):
-            print("\t%s: %s" % (userid, ', '.join(existing_memberships_by_userid[userid])))
+            print("   %s: %s" % (userid, ', '.join(existing_memberships_by_userid[userid])))
+
+        # Print new groups to create
+        print_groups_not_on_gitlab()
         sys.exit(0) # Done printing all group membership info
+
+    # Check that each project on git.uwaterloo.ca has 1-3 members, and has an unprotected master branch
+    for project_name, members in existing_memberships.items():
+        if not members:
+            print("\nWARNING: Project %s on git.uwaterloo.ca has no members" % project_name)
+        elif len(members) > 3:
+            print("\nWARNING: Project %s on git.uwaterloo.ca has more than 3 members: %s" % (project_name, ','.join(members)))
+        master_branch_info = gitlab.request('/projects/%d/repository/branches/master' % project_ids[project_name], quit_on_error=False, show_output=False, max_attempts=1)
+        if not master_branch_info:
+            print("\nWARNING: Project %s on git.uwaterloo.ca does not have a master branch" % project_name)
+        elif master_branch_info['protected']:
+            print("\nWARNING: Project %s on git.uwaterloo.ca has a protected master branch" % project_name)
 
     # Check that each student is in only one group on gitlab
     for student, repo_names in existing_memberships_by_userid.items():
@@ -157,11 +236,10 @@ if print_current_membership or check_membership:
 
     # Check that the groups in CSV file have 1-3 members. Also check that if the group
     # already exists in gitlab, check that the groups are exactly the same.
-    for group_set in all_file_memberships:
-        group = sorted(list(group_set))
+    for group in all_file_memberships:
         # Check group size is between 1-3
         if not group:
-            print("\nWARNING: Found an empty group in %s. Ignoring it." % membership_file)
+            print("\nWARNING: Found an empty group in %s." % membership_file)
         elif len(group) > 3:
             print("\nWARNING: Found a group in %s with more than 3 members: %s" % (membership_file, ','.join(group)))
         # Check that if a student is in both the CSV file and a group on gitlab, the groups are exactly the same
@@ -171,11 +249,15 @@ if print_current_membership or check_membership:
             if existing_memberships[groups_on_gitlab[0]] != group:
                 print("\nWARNING: Student %s is in group %s {%s} on git.uwaterloo.ca, but CSV file %s has the student in group {%s}. Please check the members list on git.uwaterloo.ca and the CSV file. It's possible that people in the group just haven't accepted the invitation on git.uwaterloo.ca yet."
                       % (students_on_gitlab[0], groups_on_gitlab[0], ','.join(existing_memberships[groups_on_gitlab[0]]), membership_file, ','.join(group)))
-            elif group_set in groups_to_create:
+            elif group in groups_to_create:
                 print("\nWARNING: CSV file %s says to re-create group with students {%s}, but it already exists on git.uwaterloo.ca as project %s" %
-                      (membership_file, ','.join(group_set), groups_on_gitlab[0]))
+                      (membership_file, ','.join(group), groups_on_gitlab[0]))
 
-    print("Finished checking. No errors above means no problems were found.") 
+    print("\nFinished checking. No errors above means no problems were found.") 
+
+    # Print new groups to create
+    print_groups_not_on_gitlab()
+
     sys.exit(0)
 
 

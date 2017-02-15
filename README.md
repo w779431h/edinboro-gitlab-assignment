@@ -236,6 +236,9 @@ run once at the start of term. This script will, for each student:
 The `stqam-create-repos.py` is used for CS447/SE465/ECE453 "Software Testing, Quality Assurance and Maintenance" course. This script
 creates projects for each student group according to an input CSV file, and adds the students to the group as developers.
 
+This script must be run on the UW campus network. If you're off-campus, you can use the
+[VPN client](https://uwaterloo.ca/information-systems-technology/services/virtual-private-network-vpn) or ssh into a UW server.
+
 When running the script, you will be prompted for your `_gitlab_session` cookie. The script uses the cookie to interface with the Gitlab
 web page directly when there's no appropriate API calls available. Most browsers can show you the cookie value in the privacy settings.
 The script will not print what you type for security.
@@ -278,11 +281,13 @@ The script will not print what you type for security.
      The number can be arbitrary.
 * `--token-file TOKEN_FILE`: Same usage as in `clone.py`.
 * `--current-membership`: Prints the current group memberships according to git.uwaterloo.ca and quit. The memberships are printed by project
-   and by student ID.
+   and by student ID. Also prints the groups from the CSV file where at least one student doesn't have a group on git.uwaterloo.ca.
 * `--check-membership`: Checks the CSV file and the groups that are already on git.uwaterloo.ca. Checks that:
    * Students are in only one group on Gitlab and in the CSV file.
-   * Each group in the CSV file has 1 to 3 members.
+   * Each group in the CSV file and on git.uwaterloo.ca has 1 to 3 members.
+   * Each group on git.uwaterloo.ca has an unprotected master branch (so that students, who are "Developers", can push to it).
    * If a student's group in the CSV file is different from their group on Gitlab, the script will tell you.
+   * You're not re-creating a group that already exists on git.uwaterloo.ca.
 
 #### Examples:
 

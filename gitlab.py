@@ -14,7 +14,7 @@ private_token = ''
 #        quit_on_error: If True, will quit program on error. If False, will
 #                       try 2 more times, and finially return false
 # Returns: A python object
-def request(query, post_hash={}, query_headers={}, http_method=None, quit_on_error=False, max_attempts=3):
+def request(query, post_hash={}, query_headers={}, http_method=None, quit_on_error=False, max_attempts=3, show_output=True):
     max_tries = 3
     for request_attempt in list(range(1,max_tries+1)):
         try:
@@ -30,22 +30,24 @@ def request(query, post_hash={}, query_headers={}, http_method=None, quit_on_err
                 try:
                     python_object = json.loads(json_string)
                 except Exception as e:
-                    print(json_string)
-                    print("Error occurred trying to interpret above data as JSON.")
-                    print("Error message: %s" % str(e))
+                    if show_output:
+                        print(json_string)
+                        print("Error occurred trying to interpret above data as JSON.")
+                        print("Error message: %s" % str(e))
                     if quit_on_error:
                         sys.exit(1)
                     else:
                         return False
                 return python_object
         except Exception as e:
-            print("Error occurred trying to access https://git.uwaterloo.ca/api/v3/" + query)
-            print("Error %s message: %s" % (type(e).__name__, str(e)))
+            if show_output:
+                print("Error occurred trying to access https://git.uwaterloo.ca/api/v3/" + query)
+                print("Error %s message: %s" % (type(e).__name__, str(e)))
             if quit_on_error:
                 sys.exit(1)
             elif request_attempt < max_tries:
-                print("Retrying... (re-try number %d)" % request_attempt)
-    print("Request failed after %d attempts" % max_tries)
+                if show_output: print("Retrying... (re-try number %d)" % request_attempt)
+    if show_output: print("Request failed after %d attempts" % max_tries)
     return False
 
 # Read private token from token_file. Mutates the global private_token
