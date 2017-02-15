@@ -137,7 +137,8 @@ if print_current_membership or check_membership:
             else:
                 existing_memberships_by_userid[student] = [repo_name]
 
-    # We've printed the current group memberships, so we can quit now.
+    # We've printed the current group memberships by group.
+    # Print it by userid, then quit.
     if print_current_membership:
         print("\nMemberships by WatIAM ID:")
         for userid in sorted(existing_memberships_by_userid.keys()):
@@ -170,6 +171,9 @@ if print_current_membership or check_membership:
             if existing_memberships[groups_on_gitlab[0]] != group:
                 print("\nWARNING: Student %s is in group %s {%s} on git.uwaterloo.ca, but CSV file %s has the student in group {%s}. Please check the members list on git.uwaterloo.ca and the CSV file. It's possible that people in the group just haven't accepted the invitation on git.uwaterloo.ca yet."
                       % (students_on_gitlab[0], groups_on_gitlab[0], ','.join(existing_memberships[groups_on_gitlab[0]]), membership_file, ','.join(group)))
+            elif group_set in groups_to_create:
+                print("\nWARNING: CSV file %s says to re-create group with students {%s}, but it already exists on git.uwaterloo.ca as project %s" %
+                      (membership_file, ','.join(group_set), groups_on_gitlab[0]))
 
     print("Finished checking. No errors above means no problems were found.") 
     sys.exit(0)
