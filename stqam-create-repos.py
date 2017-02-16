@@ -335,6 +335,7 @@ for project_name, members in projects_to_create:
             master_branch_exists = True
     if not master_branch_exists:
         print("> master branch doesn't exist for %s. Creating it." % project_name)
+        time.sleep(1)
         gitlab.request('projects/%d/repository/files' % new_project_id,
                        post_hash={'file_path':".gitignore", 'branch_name':"master", 'content':"#\n", 'commit_message':"Creating master branch"})
         time.sleep(1)
