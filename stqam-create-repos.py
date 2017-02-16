@@ -62,6 +62,8 @@ parser.add_argument('group_name', help="The name of the Gitlab group to create p
 parser.add_argument('membership_file', help="Path to a CSV containing group memberships, with fields: Timestamp, WatIAM user id for member 1, WatIAM user id for member 2 (optional), WatIAM user id for member 3 (optional), Group number (optional)")
 parser.add_argument('--token-file', default="/dev/stdin",
                     help="Path to file containing your Gitlab private token. Default is to read from standard input.")
+parser.add_argument('--gitlab-session-file', default="/dev/stdin",
+                    help="Path to file containing your _gitlab_session cookie value. Default is to read from standard input.")
 parser.add_argument('--current-membership', action='store_true',
                     help="Prints the current group memberships according to git.uwaterloo.ca and quit.")
 parser.add_argument('--check-membership', action='store_true',
@@ -75,6 +77,7 @@ args = parser.parse_args()
 group_name = args.group_name
 membership_file = args.membership_file
 token_file = args.token_file
+gitlab_session_file = args.gitlab_session_file
 print_current_membership = args.current_membership
 check_membership = args.check_membership
 
@@ -140,11 +143,25 @@ max_project_name = max(list(map(int, project_names_numbers))) if project_names_n
 #
 # Read gitlab session cookie
 #
-print()
-print("This script adds projects and get projects' info by interfacing with the git.uwaterloo.ca website directly.")
-print("Please login to https://git.uwaterloo.ca and enter your _gitlab_session cookie from git.uwaterloo.ca below.")
-gitlab_session_cookie = getpass.getpass("git.uwaterloo.ca _gitlab_session cookie value:")
-print()
+gitlab_session_cookie = None
+if gitlab_session_file == "/dev/stdin":
+    # Read the _gitlab_session cookie from standard input (keyboard)
+    print()
+    print("This script adds projects and get projects' info by interfacing with the git.uwaterloo.ca website directly.")
+    print("Please login to https://git.uwaterloo.ca and enter your _gitlab_session cookie from git.uwaterloo.ca below.")
+    gitlab_session_cookie = getpass.getpass("git.uwaterloo.ca _gitlab_session cookie value:")
+    print()
+else:
+    # Read the _gitlab_session cookie from file
+    print("Reading _gitlab_session cookie value from file %s" % gitlab_session_file)
+    try:
+        gitlab_session_handle = open(gitlab_session_file, 'r')
+        gitlab_session_cookie = gitlab_session_handle.readline().strip()
+        gitlab_session_handle.close()
+    except Exception as e:
+        print("Error occurred trying to read _gitlab_session value from file %s" % gitlab_session_file)
+        print("Error message: %s" % str(e))
+        sys.exit(1)
 
 
 #
@@ -162,13 +179,14 @@ if print_current_membership or check_membership:
         # Get members from API call. This doesn't return students who have been invited, but
         # haven't accepted their invitation yet.
         members_raw_data = gitlab.request("/projects/%d/members" % project['id'])
-        members_list = list(map(lambda x : x['username'], members_raw_data))
+        members_list = list(map(lambda x : ldap.get_userid(x['username'] + "@uwaterloo.ca"), members_raw_data))
         # Get members from the web page directly. 
         req = urllib.request.Request("https://git.uwaterloo.ca/%s/%s/project_members" % (group_name, project['name']),
                                      headers={'Cookie': "_gitlab_session=%s"%gitlab_session_cookie})
         with urllib.request.urlopen(req) as f:
             project_members_html = f.read().decode('utf-8')
-            email_members = re.findall(r"([a-zA-Z0-9_.+-]+)@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+", project_members_html)
+            email_members = re.findall(r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)", project_members_html)
+            email_members = list(map(lambda email: ldap.get_userid(email), email_members))
         # Combine the members from API call and from web page into a frozenset and save it in hash
         existing_memberships[project['name']] = frozenset(members_list + email_members)
 

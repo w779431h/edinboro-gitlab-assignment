@@ -239,12 +239,13 @@ creates projects for each student group according to an input CSV file, and adds
 This script must be run on the UW campus network. If you're off-campus, you can use the
 [VPN client](https://uwaterloo.ca/information-systems-technology/services/virtual-private-network-vpn) or ssh into a UW server.
 
-When running the script, you will be prompted for your `_gitlab_session` cookie. The script uses the cookie to interface with the Gitlab
-web page directly when there's no appropriate API calls available. Most browsers can show you the cookie value in the privacy settings.
-The script will not print what you type for security.
+The script requires you to enter your `_gitlab_session` cookie value, either through the keyboard (stdin) or from a file.
+The script uses the cookie to interface with the Gitlab web page directly when there's no appropriate API calls available.
+Most browsers can show you the cookie value in the privacy settings. If you type in the `_gitlab_session` cookie value,
+the script will not print what you type for security.
 
-        $ ./stqam-create-repos.py --help
         usage: stqam-create-repos.py [-h] [--token-file TOKEN_FILE]
+                                     [--gitlab-session-file GITLAB_SESSION_FILE]
                                      [--current-membership] [--check-membership]
                                      group_name membership_file
         
@@ -262,6 +263,9 @@ The script will not print what you type for security.
           --token-file TOKEN_FILE
                                 Path to file containing your Gitlab private token.
                                 Default is to read from standard input.
+          --gitlab-session-file GITLAB_SESSION_FILE
+                                Path to file containing your _gitlab_session cookie
+                                value. Default is to read from standard input.
           --current-membership  Prints the current group memberships according to
                                 git.uwaterloo.ca and quit.
           --check-membership    Checks the membership_file against the current group
@@ -280,6 +284,8 @@ The script will not print what you type for security.
    * The last field is a number or blank. If there's a number, the script will not create the project. If it's blank, the project will be created.
      The number can be arbitrary.
 * `--token-file TOKEN_FILE`: Same usage as in `clone.py`.
+* `--gitlab-session-file GITLAB_SESSION_FILE`: Similar to `--token-file`, put your `_gitlab_session` cookie value in the first line of
+   `GITLAB_SESSION_FILE`. Note that your `_gitlab_session` cookie value changes when you logout and log back in.
 * `--current-membership`: Prints the current group memberships according to git.uwaterloo.ca and quit. The memberships are printed by project
    and by student ID. Also prints the groups from the CSV file where at least one student doesn't have a group on git.uwaterloo.ca.
 * `--check-membership`: Checks the CSV file and the groups that are already on git.uwaterloo.ca. Checks that:
