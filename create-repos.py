@@ -39,6 +39,7 @@ students = []
 if args.students:
     students = list(map(lambda s:s.strip(), args.students.split(',')))
     students = list(filter(lambda s: s and not s.isspace(), students))
+    students = list(map(lambda s:s[:8],students))
 elif args.classlist:
     classlist_regex = re.compile('^[0-9]{8}:([a-z0-9]+):')
     classlist_file = args.classlist[0]
