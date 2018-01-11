@@ -12,6 +12,8 @@ parser = argparse.ArgumentParser(description="This script is used to create stud
 parser.add_argument('group_name', help="The name of the Gitlab group to create projects in.")
 parser.add_argument('--token-file', default="/dev/stdin",
                     help="Path to file containing your Gitlab private token. Default is to read from standard input.")
+parser.add_argument('--cookie-file', default="/dev/stdin",
+                    help="Path to file containing your Gitlab _gitlab_session cookie value. Default is to read from standard input.")
 parser.add_argument('--add-students', action='store_true',
                     help="By default, students will not be added to their repos. Set this option to add them, which will email them too.")
 students_arg_group = parser.add_mutually_exclusive_group()
@@ -23,16 +25,28 @@ args = parser.parse_args()
 group_name = args.group_name
 token_file = args.token_file
 add_students = args.add_students
+cookie_file = args.cookie_file
 
 # Read private token from keyboard or from file
 gitlab.set_private_token(token_file)
 
 # If adding students, read gitlab session cookie
+gitlab_session_cookie = ''
 if add_students:
-    print("You want students to be added to their project/repository.")
-    print("This script adds students by interfacing with the git.uwaterloo.ca website directly.")
-    print("Please login to https://git.uwaterloo.ca and enter your _gitlab_session cookie from git.uwaterloo.ca below.")
-    gitlab_session_cookie = getpass.getpass("git.uwaterloo.ca _gitlab_session cookie value:")
+    if cookie_file == '/dev/stdin':
+        print("You want students to be added to their project/repository.")
+        print("This script adds students by interfacing with the git.uwaterloo.ca website directly.")
+        print("Please login to https://git.uwaterloo.ca and enter your _gitlab_session cookie from git.uwaterloo.ca below.")
+        gitlab_session_cookie = getpass.getpass("git.uwaterloo.ca _gitlab_session cookie value:")
+    else:
+        try:
+            cookie_file_handle = open(cookie_file, 'r')
+            gitlab_session_cookie = cookie_file_handle.readline().strip()
+            cookie_file_handle.close()
+        except Exception as e:
+            print("Error occurred trying to read Gitlab _gitlab_session cookie value from file %s" % cookie_file)
+            print("Error message: %s" % str(e))
+            sys.exit(1)
 
 # Students we will create repositories for
 students = []
