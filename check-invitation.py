@@ -1,4 +1,4 @@
-#!/usr/bin/ssh-agent /usr/bin/env python3
+#!/usr/bin/ssh-agent python3
 
 import gitlab
 import pprint # useful for debugging
