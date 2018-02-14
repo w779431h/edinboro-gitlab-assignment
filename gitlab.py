@@ -6,7 +6,7 @@ import json,urllib.request
 
 private_token = ''
 
-# request makes a request to https://git.uwaterloo.ca/api/v3/
+# request makes a request to https://codestore.cs.edinboro.edu/api/v3/
 # and returns the JSON data as a Python object
 # Input: query: Part of URL after the URL above
 #        post_hash: A dictionary of data to send in a POST request
@@ -21,7 +21,7 @@ def request(query, post_hash={}, query_headers={}, http_method=None, quit_on_err
             if 'PRIVATE-TOKEN' not in query_headers:
                 query_headers['PRIVATE-TOKEN'] = private_token
             post_data = urllib.parse.urlencode(post_hash).encode('ascii') if post_hash else None
-            req = urllib.request.Request(url="https://git.uwaterloo.ca/api/v3/" + query,
+            req = urllib.request.Request(url="https://codestore.cs.edinboro.edu/api/v3/" + query,
                                          data=post_data,
                                          headers=query_headers,
                                          method=http_method)
@@ -41,7 +41,7 @@ def request(query, post_hash={}, query_headers={}, http_method=None, quit_on_err
                 return python_object
         except Exception as e:
             if show_output:
-                print("Error occurred trying to access https://git.uwaterloo.ca/api/v3/" + query)
+                print("Error occurred trying to access https://codestore.cs.edinboro.edu/api/v3/" + query)
                 print("Error %s message: %s" % (type(e).__name__, str(e)))
             if quit_on_error:
                 sys.exit(1)
@@ -55,7 +55,7 @@ def request(query, post_hash={}, query_headers={}, http_method=None, quit_on_err
 def set_private_token(token_file):
     global private_token
     if token_file == "/dev/stdin":
-        print("You can get your Gitlab private token from https://git.uwaterloo.ca/profile/account")
+        print("You can get your Gitlab private token from https://codestore.cs.edinboro.edu/profile/account")
         private_token = getpass.getpass("Please enter your Gitlab private token:")
         return private_token
     else:

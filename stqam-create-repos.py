@@ -65,7 +65,7 @@ parser.add_argument('--token-file', default="/dev/stdin",
 parser.add_argument('--gitlab-session-file', default="/dev/stdin",
                     help="Path to file containing your _gitlab_session cookie value. Default is to read from standard input.")
 parser.add_argument('--current-membership', action='store_true',
-                    help="Prints the current group memberships according to git.uwaterloo.ca and quit.")
+                    help="Prints the current group memberships according to codestore.cs.edinboro.edu and quit.")
 parser.add_argument('--check-membership', action='store_true',
                     help="Checks the membership_file against the current group memberships. Prints any problems it finds and quit.")
 args = parser.parse_args()
@@ -147,9 +147,9 @@ gitlab_session_cookie = None
 if gitlab_session_file == "/dev/stdin":
     # Read the _gitlab_session cookie from standard input (keyboard)
     print()
-    print("This script adds projects and get projects' info by interfacing with the git.uwaterloo.ca website directly.")
-    print("Please login to https://git.uwaterloo.ca and enter your _gitlab_session cookie from git.uwaterloo.ca below.")
-    gitlab_session_cookie = getpass.getpass("git.uwaterloo.ca _gitlab_session cookie value:")
+    print("This script adds projects and get projects' info by interfacing with the codestore.cs.edinboro.edu website directly.")
+    print("Please login to https://codestore.cs.edinboro.edu and enter your _gitlab_session cookie from codestore.cs.edinboro.edu below.")
+    gitlab_session_cookie = getpass.getpass("codestore.cs.edinboro.edu _gitlab_session cookie value:")
     print()
 else:
     # Read the _gitlab_session cookie from file
@@ -166,14 +166,14 @@ else:
 
 #
 # Print and/or check the existing group memberships. Also checks that the input CSV file's
-# data matches what already exists in git.uwaterloo.ca.
+# data matches what already exists in codestore.cs.edinboro.edu.
 #
 if print_current_membership or check_membership:
     # Hash that maps project names (Str) to their internal gitlab id
     project_ids = {}
     # Hash that maps project names (Str) to a set of WatIAM ids.
     existing_memberships = {}
-    print("Getting existing membership information from git.uwaterloo.ca...", flush=True)
+    print("Getting existing membership information from codestore.cs.edinboro.edu...", flush=True)
     for project in projects_raw_data:
         project_ids[project['name']] = project['id']
         # Get members from API call. This doesn't return students who have been invited, but
@@ -181,7 +181,7 @@ if print_current_membership or check_membership:
         members_raw_data = gitlab.request("/projects/%d/members" % project['id'])
         members_list = list(map(lambda x : ldap.get_userid(x['username'] + "@uwaterloo.ca"), members_raw_data))
         # Get members from the web page directly. 
-        req = urllib.request.Request("https://git.uwaterloo.ca/%s/%s/project_members" % (group_name, project['name']),
+        req = urllib.request.Request("https://codestore.cs.edinboro.edu/%s/%s/project_members" % (group_name, project['name']),
                                      headers={'Cookie': "_gitlab_session=%s"%gitlab_session_cookie})
         with urllib.request.urlopen(req) as f:
             project_members_html = f.read().decode('utf-8')
@@ -199,9 +199,9 @@ if print_current_membership or check_membership:
             else:
                 existing_memberships_by_userid[student] = [repo_name]
 
-    # This function prints the groups in the CSV file where at least one student isn't on git.uwaterloo.ca
+    # This function prints the groups in the CSV file where at least one student isn't on codestore.cs.edinboro.edu
     def print_groups_not_on_gitlab():
-        print("\nThese groups from %s have at least one student who isn't in a group on git.uwaterloo.ca yet:\n---" % membership_file)
+        print("\nThese groups from %s have at least one student who isn't in a group on codestore.cs.edinboro.edu yet:\n---" % membership_file)
         for members_set, members_list, row in ordered_csv_groups:
             if list(filter(lambda s: s not in existing_memberships_by_userid, members_list)):
                 print("  " + ','.join(row))
@@ -230,22 +230,22 @@ if print_current_membership or check_membership:
         print_groups_not_on_gitlab()
         sys.exit(0) # Done printing all group membership info
 
-    # Check that each project on git.uwaterloo.ca has 1-3 members, and has an unprotected master branch
+    # Check that each project on codestore.cs.edinboro.edu has 1-3 members, and has an unprotected master branch
     for project_name, members in existing_memberships.items():
         if not members:
-            print("\nWARNING: Project %s on git.uwaterloo.ca has no members" % project_name)
+            print("\nWARNING: Project %s on codestore.cs.edinboro.edu has no members" % project_name)
         elif len(members) > 3:
-            print("\nWARNING: Project %s on git.uwaterloo.ca has more than 3 members: %s" % (project_name, ','.join(members)))
+            print("\nWARNING: Project %s on codestore.cs.edinboro.edu has more than 3 members: %s" % (project_name, ','.join(members)))
         master_branch_info = gitlab.request('/projects/%d/repository/branches/master' % project_ids[project_name], quit_on_error=False, show_output=False, max_attempts=1)
         if not master_branch_info:
-            print("\nWARNING: Project %s on git.uwaterloo.ca does not have a master branch" % project_name)
+            print("\nWARNING: Project %s on codestore.cs.edinboro.edu does not have a master branch" % project_name)
         elif master_branch_info['protected']:
-            print("\nWARNING: Project %s on git.uwaterloo.ca has a protected master branch" % project_name)
+            print("\nWARNING: Project %s on codestore.cs.edinboro.edu has a protected master branch" % project_name)
 
     # Check that each student is in only one group on gitlab
     for student, repo_names in existing_memberships_by_userid.items():
         if len(repo_names) >= 2:
-            print("\nWARNING: Student %s is in multiple projects on git.uwaterloo.ca: %s" % (student, ', '.join(repo_names)))
+            print("\nWARNING: Student %s is in multiple projects on codestore.cs.edinboro.edu: %s" % (student, ', '.join(repo_names)))
 
     # Check that the CSV file has no duplicate IDs
     duplicates = find_duplicates(all_file_memberships)
@@ -265,10 +265,10 @@ if print_current_membership or check_membership:
         if students_on_gitlab: # The CSV file has a student who's already in a group on gitlab
             groups_on_gitlab = existing_memberships_by_userid[students_on_gitlab[0]]
             if existing_memberships[groups_on_gitlab[0]] != group:
-                print("\nWARNING: Student %s is in group %s {%s} on git.uwaterloo.ca, but CSV file %s has the student in group {%s}. Please check the members list on git.uwaterloo.ca and the CSV file. It's possible that people in the group just haven't accepted the invitation on git.uwaterloo.ca yet."
+                print("\nWARNING: Student %s is in group %s {%s} on codestore.cs.edinboro.edu, but CSV file %s has the student in group {%s}. Please check the members list on codestore.cs.edinboro.edu and the CSV file. It's possible that people in the group just haven't accepted the invitation on codestore.cs.edinboro.edu yet."
                       % (students_on_gitlab[0], groups_on_gitlab[0], ','.join(existing_memberships[groups_on_gitlab[0]]), membership_file, ','.join(group)))
             elif group in groups_to_create:
-                print("\nWARNING: CSV file %s says to re-create group with students {%s}, but it already exists on git.uwaterloo.ca as project %s" %
+                print("\nWARNING: CSV file %s says to re-create group with students {%s}, but it already exists on codestore.cs.edinboro.edu as project %s" %
                       (membership_file, ','.join(group), groups_on_gitlab[0]))
 
     print("\nFinished checking. No errors above means no problems were found.") 
@@ -296,13 +296,13 @@ for group in groups_to_create:
 if not projects_to_create:
     print("No new projects to create. Quitting.")
     sys.exit(0)
-print("The following %d projects will be created on git.uwaterloo.ca:\n" % len(projects_to_create))
+print("The following %d projects will be created on codestore.cs.edinboro.edu:\n" % len(projects_to_create))
 for project_name, members in projects_to_create:
     print("  %s: %s" % (project_name, ', '.join(members)))
 print()
 print("NOTE: If you haven't already, it's recommended to first run this script with")
 print("      --check-membership argument to make sure there aren't any problems")
-print("      with the CSV file or the current membership assignments on git.uwaterloo.ca.")
+print("      with the CSV file or the current membership assignments on codestore.cs.edinboro.edu.")
 print()
 user_input = input("Create projects? (yes/no): ")
 if user_input.lower() != "yes":
@@ -311,7 +311,7 @@ if user_input.lower() != "yes":
 
 
 # Begin processing students
-print("Creating %d new projects on git.uwaterloo.ca." % len(projects_to_create))
+print("Creating %d new projects on codestore.cs.edinboro.edu." % len(projects_to_create))
 for project_name, members in projects_to_create:
     print(os.linesep)
     print('-' * 60)
@@ -319,7 +319,7 @@ for project_name, members in projects_to_create:
 
     # Create project/repo for students who do not have one yet.
     if project_name in project_names:
-        print("> Project %s already exists in group %s on git.uwaterloo.ca. Skipping it." % (project_name, group_name))
+        print("> Project %s already exists in group %s on codestore.cs.edinboro.edu. Skipping it." % (project_name, group_name))
         continue
 
     # Project doesn't exist yet. Creating it.
@@ -366,7 +366,7 @@ for project_name, members in projects_to_create:
     # Step 1: Go to project_members web page and get authenticity token.
     print("> Getting authenticity token from project_members page.")
     authenticity_token = None
-    req = urllib.request.Request("https://git.uwaterloo.ca/%s/%s/project_members" % (group_name, project_name),
+    req = urllib.request.Request("https://codestore.cs.edinboro.edu/%s/%s/project_members" % (group_name, project_name),
                                  headers={'Cookie': "_gitlab_session=%s"%gitlab_session_cookie})
     with urllib.request.urlopen(req) as f:
         project_members_html = f.read().decode('utf-8')
@@ -383,7 +383,7 @@ for project_name, members in projects_to_create:
         print("> Adding members with emails: %s" % student_emails)
         post_data = urllib.parse.urlencode({'authenticity_token':authenticity_token,'user_ids':student_emails,'access_level':30}).encode('ascii')
         try:
-            add_student_post = urllib.request.Request("https://git.uwaterloo.ca/%s/%s/project_members" % (group_name, project_name),
+            add_student_post = urllib.request.Request("https://codestore.cs.edinboro.edu/%s/%s/project_members" % (group_name, project_name),
                                                       headers={'Cookie': "_gitlab_session=%s"%gitlab_session_cookie},
                                                       data=post_data, method='POST')
             urllib.request.urlopen(add_student_post)
@@ -396,4 +396,4 @@ for project_name, members in projects_to_create:
         print("> Could not get authenticity token to add students to project!")
 
     print("> Done processing project %s." % project_name)
-    time.sleep(3) # Put in a bit of a delay so that git.uwaterloo.ca isn't hammered
+    time.sleep(3) # Put in a bit of a delay so that codestore.cs.edinboro.edu isn't hammered

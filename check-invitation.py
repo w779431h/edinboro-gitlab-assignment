@@ -28,7 +28,7 @@ def valid_datetime(s):
 
 # Given a http or ssh git URL, return the repository name
 # Example:
-# url2reponame('gitlab@git.uwaterloo.ca:cs349-test1/johnsmith.git')
+# url2reponame('gitlab@codestore.cs.edinboro.edu:cs349-test1/johnsmith.git')
 # => 'johnsmith'
 def url2reponame(url):
     return url.rsplit('/',1)[-1][:-4]
@@ -52,7 +52,7 @@ parser.add_argument('--revert-date', type=valid_datetime, help="Once cloned, rev
                     "Format: 'YYYY-MM-DD hh:mm[:ss][-TTTT]' where TTTT is timezone offset, ex -0400.")
 parser.add_argument('--students', help="A comma separated list of student Quest IDs.  If given, only these student's repos will be cloned. " +
                                        "Default is to clone every project in the group.")
-parser.add_argument('--username', help="Username on git.uwaterloo.ca (same as Quest ID).")
+parser.add_argument('--username', help="Username on codestore.cs.edinboro.edu (same as Quest ID).")
 args = parser.parse_args()
 
 # save command line argument inputs in variables
@@ -113,7 +113,7 @@ for project in projects_data:
     #if gitlab_username:
     #    # User (TA or instructor) gave their Gitlab username
     #    # add it to http url
-    #    http_url = re.sub('^https://git.uwaterloo.ca', "https://%s@git.uwaterloo.ca" % gitlab_username, http_url)
+    #    http_url = re.sub('^https://codestore.cs.edinboro.edu', "https://%s@codestore.cs.edinboro.edu" % gitlab_username, http_url)
     ssh_url = project['ssh_url_to_repo']
     username = url2reponame(ssh_url)
     all_usernames.append(username)

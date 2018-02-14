@@ -35,9 +35,9 @@ gitlab_session_cookie = ''
 if add_students:
     if cookie_file == '/dev/stdin':
         print("You want students to be added to their project/repository.")
-        print("This script adds students by interfacing with the git.uwaterloo.ca website directly.")
-        print("Please login to https://git.uwaterloo.ca and enter your _gitlab_session cookie from git.uwaterloo.ca below.")
-        gitlab_session_cookie = getpass.getpass("git.uwaterloo.ca _gitlab_session cookie value:")
+        print("This script adds students by interfacing with the codestore.cs.edinboro.edu website directly.")
+        print("Please login to https://codestore.cs.edinboro.edu and enter your _gitlab_session cookie from codestore.cs.edinboro.edu below.")
+        gitlab_session_cookie = getpass.getpass("codestore.cs.edinboro.edu _gitlab_session cookie value:")
     else:
         try:
             cookie_file_handle = open(cookie_file, 'r')
@@ -133,7 +133,7 @@ for student in students:
         # Step 1: Go to project_members web page and get authenticity token.
         print("> Getting authenticity token from project_members page.")
         authenticity_token = None
-        req = urllib.request.Request("https://git.uwaterloo.ca/%s/%s/project_members" % (group_name, student),
+        req = urllib.request.Request("https://codestore.cs.edinboro.edu/%s/%s/project_members" % (group_name, student),
                                      headers={'Cookie': "_gitlab_session=%s"%gitlab_session_cookie})
         with urllib.request.urlopen(req) as f:
             project_members_html = f.read().decode('utf-8')
@@ -150,7 +150,7 @@ for student in students:
             print("> Got authenticity token.")
             print("> Sending invitation email to %s" % student_email)
             post_data = urllib.parse.urlencode({'authenticity_token':authenticity_token,'user_ids':student_email,'access_level':30}).encode('ascii')
-            add_student_post = urllib.request.Request("https://git.uwaterloo.ca/%s/%s/project_members" % (group_name, student),
+            add_student_post = urllib.request.Request("https://codestore.cs.edinboro.edu/%s/%s/project_members" % (group_name, student),
                                                       headers={'Cookie': "_gitlab_session=%s"%gitlab_session_cookie},
                                                       data=post_data, method='POST')
             urllib.request.urlopen(add_student_post)
@@ -158,4 +158,4 @@ for student in students:
             print("> Could not add student %s to repo!" % student)
 
     print("> Done processing %s." % student)
-    time.sleep(5) # Put in a bit of a delay so that git.uwaterloo.ca isn't hammered
+    time.sleep(5) # Put in a bit of a delay so that codestore.cs.edinboro.edu isn't hammered
