@@ -6,6 +6,7 @@ import sys,subprocess,os
 import json,urllib.request
 import gitlab
 import ldap
+from config import host_url, host_url_just_fqdn
 
 # Parse command-line arguments.
 parser = argparse.ArgumentParser(description="This script is used to create student repositories.")
@@ -35,9 +36,9 @@ gitlab_session_cookie = ''
 if add_students:
     if cookie_file == '/dev/stdin':
         print("You want students to be added to their project/repository.")
-        print("This script adds students by interfacing with the codestore.cs.edinboro.edu website directly.")
-        print("Please login to https://codestore.cs.edinboro.edu and enter your _gitlab_session cookie from codestore.cs.edinboro.edu below.")
-        gitlab_session_cookie = getpass.getpass("codestore.cs.edinboro.edu _gitlab_session cookie value:")
+        print("This script adds students by interfacing with the " + host_url_just_fqdn + " website directly.")
+        print("Please login to " + host_url + " and enter your _gitlab_session cookie from " + host_url_just_fqdn + " below.")
+        gitlab_session_cookie = getpass.getpass(host_url_just_fqdn + " _gitlab_session cookie value:")
     else:
         try:
             cookie_file_handle = open(cookie_file, 'r')
@@ -133,7 +134,7 @@ for student in students:
         # Step 1: Go to project_members web page and get authenticity token.
         print("> Getting authenticity token from project_members page.")
         authenticity_token = None
-        req = urllib.request.Request("https://codestore.cs.edinboro.edu/%s/%s/project_members" % (group_name, student),
+        req = urllib.request.Request(host_url + "/%s/%s/project_members" % (group_name, student),
                                      headers={'Cookie': "_gitlab_session=%s"%gitlab_session_cookie})
         with urllib.request.urlopen(req) as f:
             project_members_html = f.read().decode('utf-8')
@@ -150,7 +151,7 @@ for student in students:
             print("> Got authenticity token.")
             print("> Sending invitation email to %s" % student_email)
             post_data = urllib.parse.urlencode({'authenticity_token':authenticity_token,'user_ids':student_email,'access_level':30}).encode('ascii')
-            add_student_post = urllib.request.Request("https://codestore.cs.edinboro.edu/%s/%s/project_members" % (group_name, student),
+            add_student_post = urllib.request.Request(host_url + "/%s/%s/project_members" % (group_name, student),
                                                       headers={'Cookie': "_gitlab_session=%s"%gitlab_session_cookie},
                                                       data=post_data, method='POST')
             urllib.request.urlopen(add_student_post)

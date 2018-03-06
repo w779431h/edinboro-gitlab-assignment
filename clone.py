@@ -6,6 +6,7 @@ import argparse,getpass,re,time
 from datetime import datetime
 import sys,subprocess,os
 import json,urllib.request
+from config import host_url, host_url_just_fqdn
 
 #
 # Helper functions
@@ -110,7 +111,7 @@ for project in projects_data:
     if gitlab_username:
         # User (TA or instructor) gave their Gitlab username
         # add it to http url
-        http_url = re.sub('^https://codestore.cs.edinboro.edu', "https://%s@codestore.cs.edinboro.edu" % gitlab_username, http_url)
+        http_url = re.sub('^' + host_url, proto_type + "%s@" + host_url % gitlab_username, http_url)
     ssh_url = project['ssh_url_to_repo']
     username = url2reponame(ssh_url)
     all_usernames.append(username)
