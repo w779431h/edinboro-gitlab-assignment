@@ -78,7 +78,7 @@ commit in the last push to master branch before a certain time.
   You can clear the cached credentials with: `git config --global --unset-all credential.helper`.
   For `ssh-save`, your passphrase is saved using `ssh-agent` and `ssh-add`.
 * `--token-file TOKEN_FILE`: Access to Gitlab is needed to get all the projects in the group. You can
-  find your private token from Gitlab [Account page](https://git.uwaterloo.ca/profile/account). By default, you'll
+  find your private token from Gitlab [Account page](http://codestore.edinboro.edu/profile/personal_access_tokens). By default, you'll
   be asked to type it in (won't be echo'ed back). If you don't want to keep typing in the token, save the token in
   the first line of a file by itself, then set `TOKEN_FILE` to a path to the file.
 * `--clone-dir CLONE_DIR`: Will clone the students' repositories into the folder `CLONE_DIR`. The default is `./group_name/`,

@@ -56,7 +56,7 @@ def request(query, post_hash={}, query_headers={}, http_method=None, quit_on_err
 def set_private_token(token_file):
     global private_token
     if token_file == "/dev/stdin":
-        print("You can get your Gitlab private token from " + host_url + "/profile/account")
+        print("You can get your Gitlab private token from " + host_url + "/profile/personal_access_tokens")
         private_token = getpass.getpass("Please enter your Gitlab private token:")
         return private_token
     else:
