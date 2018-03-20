@@ -5,8 +5,8 @@ import argparse,getpass,re
 import sys,subprocess,os
 import json,urllib.request,csv
 import gitlab
-import ldap
-from config import host_url
+import emailboro
+from config import host_url, host_url_just_fqdn
 
 # Converts a Python 2 cmp function to a key function for sorting
 def cmp_to_key(mycmp):
@@ -180,14 +180,14 @@ if print_current_membership or check_membership:
         # Get members from API call. This doesn't return students who have been invited, but
         # haven't accepted their invitation yet.
         members_raw_data = gitlab.request("/projects/%d/members" % project['id'])
-        members_list = list(map(lambda x : ldap.get_userid(x['username'] + "@uwaterloo.ca"), members_raw_data))
+        members_list = list(map(lambda x : emailboro.get_userid(x['username'] + "@uwaterloo.ca"), members_raw_data))
         # Get members from the web page directly. 
         req = urllib.request.Request(host_url + "/%s/%s/project_members" % (group_name, project['name']),
                                      headers={'Cookie': "_gitlab_session=%s"%gitlab_session_cookie})
         with urllib.request.urlopen(req) as f:
             project_members_html = f.read().decode('utf-8')
             email_members = re.findall(r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)", project_members_html)
-            email_members = list(map(lambda email: ldap.get_userid(email), email_members))
+            email_members = list(map(lambda email: emailboro.get_userid(email), email_members))
         # Combine the members from API call and from web page into a frozenset and save it in hash
         existing_memberships[project['name']] = frozenset(members_list + email_members)
 
@@ -380,7 +380,7 @@ for project_name, members in projects_to_create:
     # Step 2: Make the post request to invite by email
     if authenticity_token:
         print("> Got authenticity token.")
-        student_emails = ",".join(map(lambda userid: ldap.get_student_email(userid), members))
+        student_emails = ",".join(map(lambda userid: emailboro.get_student_email(userid), members))
         print("> Adding members with emails: %s" % student_emails)
         post_data = urllib.parse.urlencode({'authenticity_token':authenticity_token,'user_ids':student_emails,'access_level':30}).encode('ascii')
         try:

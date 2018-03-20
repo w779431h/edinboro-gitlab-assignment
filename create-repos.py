@@ -4,8 +4,8 @@ import time
 import argparse,getpass,re
 import sys,subprocess,os
 import json,urllib.request
+import emailboro
 import gitlab
-import ldap
 from config import host_url, host_url_just_fqdn
 
 # Parse command-line arguments.
@@ -147,7 +147,7 @@ for student in students:
         # Step 2: Make the post request to invite by email
         if authenticity_token:
             #student_email = "%s@uwaterloo.ca" % student
-            student_email = ldap.get_student_email(student)
+            student_email = email.get_student_email(student)
             print("> Got authenticity token.")
             print("> Sending invitation email to %s" % student_email)
             post_data = urllib.parse.urlencode({'authenticity_token':authenticity_token,'user_ids':student_email,'access_level':30}).encode('ascii')
