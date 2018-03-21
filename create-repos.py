@@ -56,12 +56,12 @@ if args.students:
     students = list(filter(lambda s: s and not s.isspace(), students))
     students = list(map(lambda s:s[:8],students))
 elif args.classlist:
-    classlist_regex = re.compile('^[0-9]{8}:([a-z0-9]+):')
+    classlist_regex = re.compile('[a-z]{2}[0-9]{6}')
     classlist_file = args.classlist[0]
     for line in open(classlist_file, 'r'):
         match = classlist_regex.match(line)
         if match != None:
-            userid = match.group(1)
+            userid = match.group(0)
             userid = userid[0:8]
             students.append(userid)
 
