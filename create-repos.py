@@ -147,7 +147,7 @@ for student in students:
         # Step 2: Make the post request to invite by email
         if authenticity_token:
             #student_email = "%s@uwaterloo.ca" % student
-            student_email = email.get_student_email(student)
+            student_email = emailboro.get_student_email(student)
             print("> Got authenticity token.")
             print("> Sending invitation email to %s" % student_email)
             post_data = urllib.parse.urlencode({'authenticity_token':authenticity_token,'user_ids':student_email,'access_level':30}).encode('ascii')
