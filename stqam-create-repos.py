@@ -4,7 +4,7 @@ import time
 import argparse,getpass,re
 import sys,subprocess,os
 import json,urllib.request,csv
-import gitlab
+import simple_gitlab
 import emailboro
 from config import host_url, host_url_just_fqdn
 
@@ -123,7 +123,7 @@ except Exception as e:
 #
 # Read private gitlab token from keyboard or from file
 #
-gitlab.set_private_token(token_file)
+simple_gitlab.set_private_token(token_file)
 
 
 #
@@ -131,9 +131,9 @@ gitlab.set_private_token(token_file)
 # of projects. We need the list so that we can find the highest project number (we'll name projects
 # as a random number)
 #
-group_id = gitlab.get_group_id(group_name)
+group_id = simple_gitlab.get_group_id(group_name)
 print("Getting list of projects in group %s... " % group_name, end='', flush=True)
-group_data = gitlab.request("groups/%d" % group_id)
+group_data = simple_gitlab.request("groups/%d" % group_id)
 print("Done.", flush=True)
 projects_raw_data = group_data['projects']
 project_names = list(map(lambda p: p['name'], projects_raw_data))
@@ -179,7 +179,7 @@ if print_current_membership or check_membership:
         project_ids[project['name']] = project['id']
         # Get members from API call. This doesn't return students who have been invited, but
         # haven't accepted their invitation yet.
-        members_raw_data = gitlab.request("/projects/%d/members" % project['id'])
+        members_raw_data = simple_gitlab.request("/projects/%d/members" % project['id'])
         members_list = list(map(lambda x : emailboro.get_userid(x['username'] + "@uwaterloo.ca"), members_raw_data))
         # Get members from the web page directly. 
         req = urllib.request.Request(host_url + "/%s/%s/project_members" % (group_name, project['name']),
@@ -237,7 +237,7 @@ if print_current_membership or check_membership:
             print("\nWARNING: Project %s on " + host_url_just_fqdn + " has no members" % project_name)
         elif len(members) > 3:
             print("\nWARNING: Project %s on " + host_url_just_fqdn + " has more than 3 members: %s" % (project_name, ','.join(members)))
-        master_branch_info = gitlab.request('/projects/%d/repository/branches/master' % project_ids[project_name], quit_on_error=False, show_output=False, max_attempts=1)
+        master_branch_info = simple_gitlab.request('/projects/%d/repository/branches/master' % project_ids[project_name], quit_on_error=False, show_output=False, max_attempts=1)
         if not master_branch_info:
             print("\nWARNING: Project %s on " + host_url_just_fqdn + " does not have a master branch" % project_name)
         elif master_branch_info['protected']:
@@ -324,12 +324,12 @@ for project_name, members in projects_to_create:
         continue
 
     # Project doesn't exist yet. Creating it.
-    new_project = gitlab.request('projects', post_hash={'name':project_name, 'namespace_id':group_id, 'visibility_level':0})
+    new_project = simple_gitlab.request('projects', post_hash={'name':project_name, 'namespace_id':group_id, 'visibility_level':0})
     new_project_id = new_project['id']
     print("> Created new project %s with id %d" % (project_name, new_project_id))
 
     # Create master branch if it doesn't exist yet
-    existing_branches = gitlab.request('projects/%d/repository/branches' % new_project_id)
+    existing_branches = simple_gitlab.request('projects/%d/repository/branches' % new_project_id)
     master_branch_exists = False
     for branch in existing_branches:
         if branch['name'] == 'master':
@@ -337,14 +337,14 @@ for project_name, members in projects_to_create:
     if not master_branch_exists:
         print("> master branch doesn't exist for %s. Creating it." % project_name)
         time.sleep(1)
-        gitlab.request('projects/%d/repository/files' % new_project_id,
+        simple_gitlab.request('projects/%d/repository/files' % new_project_id,
                        post_hash={'file_path':".gitignore", 'branch_name':"master", 'content':"#\n", 'commit_message':"Creating master branch"})
         time.sleep(1)
 
         # Wait for master branch to become protected. Gitlab seems to have a delay on protecting the
         # master branch when it's created.
         while True:
-            master_branch_info = gitlab.request('/projects/%d/repository/branches/master' % new_project_id, quit_on_error=False)
+            master_branch_info = simple_gitlab.request('/projects/%d/repository/branches/master' % new_project_id, quit_on_error=False)
             if master_branch_info and master_branch_info['protected']:
                 print("> Newly created master branch has become protected.")
                 break
@@ -359,7 +359,7 @@ for project_name, members in projects_to_create:
     # So master branch should exist. Also, if master is already unprotected,
     # then this operation does nothing (it's idempotent).
     print("> Unprotecting master branch.")
-    gitlab.request('/projects/%d/repository/branches/master/unprotect' % new_project_id, http_method='PUT')
+    simple_gitlab.request('/projects/%d/repository/branches/master/unprotect' % new_project_id, http_method='PUT')
         
     # The project is now set up with an unprotected master branch. Add students to the project.
     print("> Adding student to project/repository.")

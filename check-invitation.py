@@ -1,6 +1,6 @@
 #!/usr/bin/ssh-agent python3
 
-import gitlab
+import simple_gitlab
 import pprint # useful for debugging
 import argparse,getpass,re,time
 from datetime import datetime
@@ -70,7 +70,7 @@ else:
     students = None
 
 # Read private token from keyboard or from file
-gitlab.set_private_token(token_file)
+simple_gitlab.set_private_token(token_file)
 
 # for debugging
 # print("group_to_clone=%s" % group_to_clone)
@@ -87,7 +87,7 @@ gitlab.set_private_token(token_file)
 #
 
 print("Getting ID of group %s." % group_to_clone)
-group_id = gitlab.get_group_id(group_to_clone)
+group_id = simple_gitlab.get_group_id(group_to_clone)
 print("Found group %s which has ID %d" % (group_to_clone, group_id))
 
 
@@ -102,13 +102,13 @@ print("Found group %s which has ID %d" % (group_to_clone, group_id))
 
 print("Getting git repo URLs in group %s (id %d)." % (group_to_clone, group_id))
 
-group_to_clone_data = gitlab.request("groups/%d" % group_id)
+group_to_clone_data = simple_gitlab.request("groups/%d" % group_id)
 projects_data = group_to_clone_data['projects']
 all_usernames = []
 urls = []
 for project in projects_data:
     #print(project[
-    #print(gitlab.request("projects/%s/members" % project['id']))
+    #print(simple_gitlab.request("projects/%s/members" % project['id']))
     #continue
     http_url = project['http_url_to_repo'] 
     #if gitlab_username:
@@ -123,7 +123,7 @@ for project in projects_data:
                      'project_id': project['id'],
                      'http_url': http_url,
                      'ssh_url': ssh_url})
-    members = gitlab.request("projects/%s/members" % project['id'])
+    members = simple_gitlab.request("projects/%s/members" % project['id'])
     if len(members) >= 1 and members[0] != None:
         print("%s,%s,%s,%s" % (username,ssh_url,http_url,"accepted"))
     else:
