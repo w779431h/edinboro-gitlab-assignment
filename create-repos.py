@@ -6,6 +6,7 @@ import sys,subprocess,os
 import json,urllib.request
 import emailboro
 import simple_gitlab
+import gitlab # external module python-gitlab
 from config import host_url, host_url_just_fqdn
 
 # Parse command-line arguments.
@@ -30,24 +31,6 @@ cookie_file = args.cookie_file
 
 # Read private token from keyboard or from file
 simple_gitlab.set_private_token(token_file)
-
-# If adding students, read gitlab session cookie
-gitlab_session_cookie = ''
-if add_students:
-    if cookie_file == '/dev/stdin':
-        print("You want students to be added to their project/repository.")
-        print("This script adds students by interfacing with the " + host_url_just_fqdn + " website directly.")
-        print("Please login to " + host_url + " and enter your _gitlab_session cookie from " + host_url_just_fqdn + " below.")
-        gitlab_session_cookie = getpass.getpass(host_url_just_fqdn + " _gitlab_session cookie value:")
-    else:
-        try:
-            cookie_file_handle = open(cookie_file, 'r')
-            gitlab_session_cookie = cookie_file_handle.readline().strip()
-            cookie_file_handle.close()
-        except Exception as e:
-            print("Error occurred trying to read Gitlab _gitlab_session cookie value from file %s" % cookie_file)
-            print("Error message: %s" % str(e))
-            sys.exit(1)
 
 # Students we will create repositories for
 students = []
@@ -123,40 +106,43 @@ for student in students:
     # in the code, we have created master branch if it doesn't exist.
     # So master branch should exist. Also, if master is already unprotected,
     # then this operation does nothing (it's idempotent).
-    print("> Unprotecting master branch.")
-    simple_gitlab.request('/projects/%d/repository/branches/master/unprotect' % project_ids[student], http_method='PUT')
+
+    # print("> Unprotecting master branch.")
+    # simple_gitlab.request('/projects/%d/repository/branches/master/unprotect' % project_ids[student], http_method='PUT')
         
     # The repo is now set up with an unprotected master branch.
     # Do email invitation if user wants to do that.
     if add_students:
+
+        print("> Connecting to GitLab.")
+
+        # TODO: figure out token filename 
+        gl = simple_gitlab.make_gitlab_obj(token_filename="test_token")
+        try:
+            current_group = gl.groups.get(group_id)
+        except Exception as e:
+            print("Encountered error %s!" % e)
+            print("> Could not find group with ID %s!" % group_id)
+
         print("> Adding student to project/repository.")
 
-        # Step 1: Go to project_members web page and get authenticity token.
-        print("> Getting authenticity token from project_members page.")
-        authenticity_token = None
-        req = urllib.request.Request(host_url + "/%s/%s/project_members" % (group_name, student),
-                                     headers={'Cookie': "_gitlab_session=%s"%gitlab_session_cookie})
-        with urllib.request.urlopen(req) as f:
-            project_members_html = f.read().decode('utf-8')
-            for line in project_members_html.splitlines():
-                match = re.search(r'<input type="hidden" name="authenticity_token" value="([^"]+)" />', line)
-                if match:
-                    authenticity_token = match.group(1)
-                    break
+        # the project name will be the student's username, so get that
+        # proj_name = None
+        # try:
+        #     proj_name = simple_gitlab.get_user_by_name(gl, student).username
+        # except Exception as e:
+        #     print("Encountered error `%s` while finding user" % e)
+        #     print("> Could not add student %s to repo!" % student)
 
-        # Step 2: Make the post request to invite by email
-        if authenticity_token:
-            #student_email = "%s@uwaterloo.ca" % student
-            student_email = emailboro.get_student_email(student)
-            print("> Got authenticity token.")
-            print("> Sending invitation email to %s" % student_email)
-            post_data = urllib.parse.urlencode({'authenticity_token':authenticity_token,'user_ids':student_email,'access_level':30}).encode('ascii')
-            add_student_post = urllib.request.Request(host_url + "/%s/%s/project_members" % (group_name, student),
-                                                      headers={'Cookie': "_gitlab_session=%s"%gitlab_session_cookie},
-                                                      data=post_data, method='POST')
-            urllib.request.urlopen(add_student_post)
-        else:
-            print("> Could not add student %s to repo!" % student)
+        student_id = simple_gitlab.get_user_by_name(gl, student).id
+        # try:
+        simple_gitlab.add_user_to_project(gl, student_id, student, \
+                                              g_name=current_group.name)
+        print("Student added as member of %s/student." % (current_group.name, student))
+        # except Exception as e:
+        #     print("Encountered error `%s` while adding user" % e)
+        #     print("> Could not add student %s to repo!" % student)
+
 
     print("> Done processing %s." % student)
     time.sleep(5) # Put in a bit of a delay so that codestore.cs.edinboro.edu isn't hammered

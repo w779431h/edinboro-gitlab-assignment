@@ -1,5 +1,6 @@
 *~
 *.swp
+*.png
 test_token
-test_cookie
+test_list
 gabriel-class
