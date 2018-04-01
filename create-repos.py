@@ -138,7 +138,7 @@ for student in students:
         # try:
         simple_gitlab.add_user_to_project(gl, student_id, student, \
                                               g_name=current_group.name)
-        print("Student added as member of %s/student." % (current_group.name, student))
+        print("Student added as member of %s/%s." % (current_group.name, student))
         # except Exception as e:
         #     print("Encountered error `%s` while adding user" % e)
         #     print("> Could not add student %s to repo!" % student)
