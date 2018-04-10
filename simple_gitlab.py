@@ -58,6 +58,11 @@ def set_private_token(token_file):
     global private_token
     if token_file == "/dev/stdin":
         print("You can get your Gitlab private token from " + host_url + "/profile/personal_access_tokens")
+        print('To create a new token: \
+        \n\t- Type in a uniqe token name, like "gitlab script" \
+        \n\t- Check the "api" box \
+        \n\t- Click "Create personal access token" \
+        \n\t- Copy from the field titled, "Your New Personal Access Token"')
         private_token = getpass.getpass("Please enter your Gitlab private token:")
         return private_token
     else:
@@ -91,6 +96,8 @@ def get_group_id(group_name):
     sys.exit(1)
 
 
+# ------Begin New functions------
+# These are all helper functions for the python-gitlab module
 
 # makes a GitLab object using the `python-gitlab` module
 # this function is useful because we use a token file
