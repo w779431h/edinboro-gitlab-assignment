@@ -109,6 +109,7 @@ def make_gitlab_obj(url=host_url, token=None, token_filename=None):
             sys.exit(1)
     
         token = str(token_file.readline()).rstrip()
+        token_file.close()
     elif private_token:
         # use token from other function
         token = private_token
