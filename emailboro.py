@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-import re
-
 # This module handle converting to email from student ID, and vice-versa
 
 # convert student ID to email

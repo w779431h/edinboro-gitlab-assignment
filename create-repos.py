@@ -4,9 +4,7 @@ import time
 import argparse,getpass,re
 import sys,subprocess,os
 import json,urllib.request
-import emailboro
 import simple_gitlab
-import gitlab # external module python-gitlab
 from config import host_url, host_url_just_fqdn
 
 # Parse command-line arguments.
