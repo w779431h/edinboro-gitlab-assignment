@@ -1,6 +1,7 @@
 *~
 *.swp
 *.png
+*.pyc
 test_token
 test_list
 gabriel-class
