@@ -195,7 +195,7 @@ def get_project_by_name(gl, name, g_name=None):
 
     projects = search_match(projects, name)
 
-    # bad_search_check(projects, "projects", name)
+    bad_search_check(projects, "projects", name)
 
     return projects[0]
 
