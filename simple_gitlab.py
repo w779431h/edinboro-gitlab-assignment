@@ -141,15 +141,22 @@ def bad_search_check(result, lst_name, item_name):
         raise RuntimeError("Multiple %s with name: %s" % (lst_name, item_name))
     elif len(result) == 0:
         raise RuntimeError("No %s found with name: %s" % (lst_name, item_name))
-    
-    
+
+# filters the GitLab search by the given name
+# Input:
+#     lst: a list of GitLab objects which have names, i.e., groups
+#     name: the name of the desired object
+def search_match(lst, name):
+    return list(filter(lambda item: item.name == name, lst))
+
 # returns group object
 # Input:
 #     gl: the GitLab object
 #     name: the name of the group
 def get_group_by_name(gl, name):
     # TODO: paginate below list later when there are many groups
-    groups = gl.groups.list(search=name)
+    groups = gl.groups.list(all=True,search=name)
+    groups = search_match(groups, name)
 
     # there should only be one group with this name
     bad_search_check(groups, "groups", name)
@@ -162,7 +169,8 @@ def get_group_by_name(gl, name):
 #     gl: the GitLab object
 #     name: the name of the user
 def get_user_by_name(gl, name):
-    users = gl.users.list(username=name)
+    users = gl.users.list(all=True,username=name)
+    users = search_match(users, name)
 
     # there should only be one user with this name
     bad_search_check(users, "users", name)
@@ -181,9 +189,11 @@ def get_project_by_name(gl, name, g_name=None):
         group = get_group_by_name(gl, g_name)
 
         # get the project by its name
-        projects = group.projects.list(search=name)
+        projects = group.projects.list(all=True,search=name)
     else:
-        projects = gl.projects.list(search=name)
+        projects = gl.projects.list(all=True,search=name)
+
+    projects = search_match(projects, name)
 
     # bad_search_check(projects, "projects", name)
 
