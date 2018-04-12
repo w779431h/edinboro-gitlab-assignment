@@ -1,4 +1,3 @@
-
 import gitlab
 import simple_gitlab
 import re
@@ -43,16 +42,25 @@ def createUser(user):
 
 # Parse file, find any entries that match the above input
 # and send entries to the create user function
-file = open(file_name, 'r')
-for line in file:
-    user_data = re.split(',', line.rstrip())
-    if (class_name == user_data[1] and class_section == user_data[2]):
-        print("Adding: " + user_data[6] + " " + user_data[5])
-        createUser(user_data) 
+found = False
 
+try: 
+    file = open(file_name, 'r')
+    for line in file:
+        user_data = re.split(',', line.rstrip())
+        if (class_name == user_data[1] and class_section == user_data[2]):
+            print("Adding: " + user_data[6] + " " + user_data[5])
+            found = True
+            createUser(user_data)
+except FileNotFoundError:
+    print("File could not be found. Make sure file exists in this directory, and you have typed the name correctly.")
+
+if(found == False):
+    print("No students could be found for this class and section. Make sure the course number and section number are correct.")
 #users = gl.users.list()
 #for user in gl.users.list():
     #print(user)
 
 #print(courseData)
+
 
