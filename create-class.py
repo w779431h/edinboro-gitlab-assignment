@@ -42,7 +42,8 @@ if(add_students==1):
         if (course_number == user_data[1] and class_section == user_data[2]):
             user_name = user_data[8][0:8]
             print("Adding " + user_name + " to the Gitlab group.")
+            user = gl.users.list(username=user_name)[0]
             group = gl.groups.get(gitlab_group_name)
-            group.members.create({'user_id':user_name, 'access_level':gitlab.GUEST_ACCESS})
+            group.members.create({'user_id':user.id, 'access_level':gitlab.GUEST_ACCESS})
 
 
