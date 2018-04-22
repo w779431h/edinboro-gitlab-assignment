@@ -10,10 +10,10 @@ gl = simple_gitlab.make_gitlab_obj(token_filename="test_token")
 
 # Argument Parsing
 parser = argparse.ArgumentParser(description="This script is used to create a Gitlab group for the specified class.")
-parser.add_argument('--course_name', required=True, help="The course name (ex. CSCI125) of the desired course to create a Gitlab group for.")
-parser.add_argument('--course_section',  required=True, help="The section of the course to create a Gitlab group for.")
-parser.add_argument('--add_students', const=1, type=int, nargs='?', help="Use this if you wish to also add all students for this course to the Gitlab group.")
-parser.add_argument('--file_name', nargs='?', help="The .CSV file from which you want to pull user data from.")
+parser.add_argument('--course-name', required=True, help="The course name (ex. CSCI125) of the desired course to create a Gitlab group for.")
+parser.add_argument('--course-section',  required=True, help="The section of the course to create a Gitlab group for.")
+parser.add_argument('--add-students', const=1, type=int, nargs='?', help="Use this if you wish to also add all students for this course to the Gitlab group.")
+parser.add_argument('--file-name', nargs='?', help="The .CSV file from which you want to pull user data from.")
 
 args = parser.parse_args()
 

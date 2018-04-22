@@ -10,9 +10,9 @@ gl = simple_gitlab.make_gitlab_obj(token_filename="test_token")
 
 # Argument Parsing
 parser = argparse.ArgumentParser(description="This script is used to create group projects within a specified Gitlab group.")
-parser.add_argument('--group_name', required=True, help="The Gitlab group name (ex. csci-408-1) that you wish to create group projects in.")
-parser.add_argument('--project_name', required=True, help="The name of the project you wish to create.")
-parser.add_argument('--file_name', required=True, help="The .CSV file from which you want to pull group member info from.")
+parser.add_argument('--group-name', required=True, help="The Gitlab group name (ex. csci-408-1) that you wish to create group projects in.")
+parser.add_argument('--project-name', required=True, help="The name of the project you wish to create.")
+parser.add_argument('--file-name', required=True, help="The .CSV file from which you want to pull group member info from.")
 
 
 args = parser.parse_args()
@@ -25,7 +25,7 @@ file_name = args.file_name
 group = None
 group_id = None
 try:
-    group = gl.groups.get(group_name)
+    group = simple_gitlab.get_group_by_name(gl, group_name)
     group_id = group.id
 except:
     print("Gitlab group could not be found. Make sure it exists and you typed its name in correctly.")
@@ -37,7 +37,7 @@ file = None
 try: 
     file = open(file_name, 'r')
 except FileNotFoundError:
-    print("File could not be found. Make sure file exists in this directory, and you have typed the name correctly.")
+    print("File " + file_name + " could not be found. Make sure file exists in this directory, and you have typed the name correctly.")
     sys.exit()
 
 
@@ -57,3 +57,5 @@ for line in file:
         project.members.create({'user_id': user.id, 'access_level': gitlab.DEVELOPER_ACCESS})
         print("Adding: " + name + " to " + project_name + " " + str(i) + ".")
     i = i + 1
+
+file.close()
