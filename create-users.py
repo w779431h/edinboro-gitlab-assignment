@@ -1,8 +1,6 @@
-import gitlab
 import simple_gitlab
 import re
 import argparse
-from config import host_url, host_url_just_fqdn
 
 gl = simple_gitlab.make_gitlab_obj(token_filename="test_token")
 
