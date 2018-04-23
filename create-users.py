@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import simple_gitlab
 import re
 import argparse

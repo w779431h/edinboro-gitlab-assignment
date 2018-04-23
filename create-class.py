@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 #Creates a Gitlab group for the specified class
 import gitlab
 import simple_gitlab
