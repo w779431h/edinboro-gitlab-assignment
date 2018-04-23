@@ -62,5 +62,7 @@ if(add_students==1):
         else:
             found = False
 
+file.close()
+
 if(found == False):
     print("No students could be found for this class and section. Make sure the course number and section number are correct.")
