@@ -1,0 +1,19 @@
+* Quickstart
+This is a quickstart guide to using the Edinboro Assignment Submission System
+
+** Prerequisites
+You must have =git=, =python3.4=, and =pip= installed. This guide assumes a Linux machine is used.
+In order to create students, you must be an administrator on the codestore instance. Talk to your system administrator for these priveleges if you are an instructor.
+
+** Installation
+To install the =python-gitlab= module, type:
+=$ pip install python-gitlab=
+In the directory that you would like your script to be installed, type:
+=$ git clone https://github.com/GabrielDougherty/edinboro-gitlab-assignment.git=
+=$ cd edinboro-gitlab-assignment=
+
+Now, you can run your scripts.
+
+** Creating a class
+
+In GitLab, a class (i.e., CSCI408), is a GitLab group. In order to create a class, type:
