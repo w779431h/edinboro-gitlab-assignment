@@ -1,17 +1,15 @@
-import gitlab
 import simple_gitlab
 import re
 import argparse
-from config import host_url, host_url_just_fqdn
 
 gl = simple_gitlab.make_gitlab_obj(token_filename="test_token")
 
 
 # Argument Parsing
 parser = argparse.ArgumentParser(description="This script is used to create any user accounts that do not yet exist from a classlist.")
-parser.add_argument('file_name', help="The .CSV file from which you want to pull user data from.")
-parser.add_argument('course_number', help="The course number (ex. 125) of the desired course to add users from.")
-parser.add_argument('course_section', help="The section of the course to add users from.")
+parser.add_argument('--file-name',  required=True, help="The .CSV file from which you want to pull user data from.")
+parser.add_argument('--course-number',  required=True, help="The course number (ex. 125) of the desired course to add users from.")
+parser.add_argument('--course-section',  required=True, help="The section of the course to add users from.")
 args = parser.parse_args()
 
 #Set arguments as variables
@@ -52,6 +50,7 @@ try:
             print("Adding: " + user_data[6] + " " + user_data[5])
             found = True
             createUser(user_data)
+    file.close()
 except FileNotFoundError:
     print("File could not be found. Make sure file exists in this directory, and you have typed the name correctly.")
 
