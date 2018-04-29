@@ -49,3 +49,11 @@ In order to create the above class, section 1 of CSCI408, called `CSCI408-1`, ty
 In order to create the above class, and add students from a roster file, type:
 
 `​$ python3 create-class.py --course-name "CSCI408" --course-section "1" --file-name "csci408.csv"​`
+
+The .csv files should follow a format that matches the following:
+
+`CSCI,408,1,SOFTWARE ENGINEERING,@00803819,Bob,Jim,5-Oct-97,jb123456@scots.edinboro.edu
+CSCI,408,1,SOFTWARE ENGINEERING,@00803819,Jackson,Bo,5-Oct-97,bj123456@scots.edinboro.edu
+CSCI,408,1,SOFTWARE ENGINEERING,@00803819,Woods,Tiger,5-Oct-97,tw123456@scots.edinboro.edu`
+
+If multiple classes/sections of a class are included in the classlist file, then only the students from the specified class and section number will be added from the file.
