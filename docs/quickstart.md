@@ -66,6 +66,7 @@ To use this script, and add all of the students in the roster file that are memb
 
 `​$ python3 create-users.py --file-name csci408.CSV --course-number 408 --course-section 1​`
 
+If the wrong file name is entered, or there are no students that belong to that course and section number, an error will be displayed and you will have to try again.
 
 Creating a class
 ----------------
