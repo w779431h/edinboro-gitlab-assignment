@@ -6,6 +6,22 @@ import re
 import argparse
 import sys
 
+# This script is used to create a group projects within a certain Gitlab group.
+# The script uses a .CSV file that declares which students should be grouped together.
+
+# Pre-conditions: 
+#   - The system has been properly installed
+#   - Person using this script has admin access to the Gitlab server
+#   - If a .csv file has been provided, it has the correct formatting (for formatting, see quick-start guide)
+#   - A currently existing Gitlab group has been provided
+
+# Post-conditions:
+#   - New projects are made within the Gitlab group of choice
+#   - The number of projects match the number of groups in the .CSV file
+#   - Each project has the specified project name, followed by its own number to 
+#   differentiate groups.
+#   - Each project includes the correct group members, loaded from the .CSV file
+
 gl = simple_gitlab.make_gitlab_obj(token_filename="test_token")
 
 # Argument Parsing
@@ -22,6 +38,7 @@ group_name = args.group_name
 project_name = args.project_name
 file_name = args.file_name
 
+# Check to see if the Gitlab group exists, and set a variable to represent it.
 group = None
 group_id = None
 try:

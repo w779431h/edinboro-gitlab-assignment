@@ -1,11 +1,25 @@
 #!/usr/bin/env python3
-#Creates a Gitlab group for the specified class
 import gitlab
 import simple_gitlab
 import re
 import argparse
 import sys
 import os
+
+# This script is used to create a Gitlab group for a specified class and section. It can also use
+# a classlist .CSV file to automatically add users that belong to that class and section to the 
+# Gitlab group automatically.
+
+# Pre-conditions: 
+#   - The system has been properly installed
+#   - Person using this script has admin access to the Gitlab server
+#   - If a .csv file has been provided, it has the correct formatting (for formatting, see quick-start guide)
+
+# Post-conditions:
+#   - A Gitlab group has been created using the specified course number and section number
+#   - Group name will be in 'course subject-course number-section number'
+#   - If a .CSV file was used, all students from that course and section are added to the 
+#   Gitlab group
 
 gl = simple_gitlab.make_gitlab_obj(token_filename="test_token")
 
@@ -31,7 +45,16 @@ course_number = class_name[4:7]
 # Create string for the Gitlab group name based on arguments
 gitlab_group_name = subject + "-" + course_number + "-" + class_section
 
-#Add user to the group
+# Add user to the group
+
+# Pre-conditions:
+#   - Gitlab group has been successfully created
+#   - User_data is a line from the .CSV file where the course
+#   name and section match the desired Gitlab group
+
+# Post-conditions:
+#   - User with credentials matching user_data is added to Gitlab group
+
 def add_user_to_group(user_data):
     user_name = user_data[8][0:8]
     print("Adding " + user_name + " to " + gitlab_group_name + ".")
@@ -39,7 +62,13 @@ def add_user_to_group(user_data):
     group = gl.groups.get(gitlab_group_name)
     group.members.create({'user_id':user.id, 'access_level':gitlab.GUEST_ACCESS})
 
-#Create a new Gitlab group using defined group name
+# Create a new Gitlab group using defined group name
+
+# Pre-Conditions:
+#   - A group name has been set
+
+# Post-Conditions:
+#   - A Gitlab group with the predefined group name is created 
 def create_group():
     try:
         group = gl.groups.create({'name':gitlab_group_name, 'path':gitlab_group_name})
