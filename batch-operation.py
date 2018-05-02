@@ -3,6 +3,22 @@
 import argparse
 import sys,subprocess,os
 
+# This script is used to run a command-line program in every folder in a
+# given folder. This script takes a command and target parent directory for the
+# command to be run in. Generally, this would be used to run a command inside
+# every student folder in a cloned class (GitLab Group).
+
+# Pre-conditions:
+#   - The system has been properly installed
+#   - Person using this script has a folder two levels deep, such as a downloaded
+#     GitLab Group
+
+# Post-conditions:
+#   - The given command has been executed in every directory inside the given
+#     parent directory
+#   - Information on the command and directories have been printed to the screen
+
+
 parser = argparse.ArgumentParser(description="Runs a command or program in every folder in a given folder.")
 parser.add_argument("parent_dir", help="The given command will be run on each folder X inside parent_dir.")
 parser.add_argument("command", help="Command or path to program to run inside X.")
